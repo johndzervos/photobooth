@@ -42,7 +42,7 @@ class App(QMainWindow):
     self.textbox = QLineEdit(self)
     self.textbox.move(20, 20)
     self.textbox.resize(280,30)
-    self.textbox.setText("your_email@gmail.com") 
+    self.textbox.setText("cerigo3@gmail.com") 
     
     # Create buttons
     self.send_email_button = QPushButton('Send email', self)
@@ -56,7 +56,7 @@ class App(QMainWindow):
     # Find the most recent photo in the photos directory
     photos = sorted(glob.glob(f"{PHOTOS_DIR}/*.jpg"))
     if len(photos) > 0:
-      self.latest_photo = sorted(glob.glob(f"{PHOTOS_DIR}/*.jpg"))[-1]
+      self.latest_photo = photos[-1]
       self.display_photo(f'{self.latest_photo}')
     
     # connect buttons to functions
@@ -66,11 +66,11 @@ class App(QMainWindow):
   
   def on_click_send_email(self):
     textboxValue = self.textbox.text()
-    send_email_with_attachment(textboxValue, f'{PHOTOS_DIR}/{self.latest_photo}.jpg')
+    send_email_with_attachment(textboxValue, self.latest_photo)
   
   def on_click_take_picture(self):
     self.latest_photo = take_picture()
-    self.display_photo(f'{PHOTOS_DIR}/{self.latest_photo}')
+    self.display_photo(f'{self.latest_photo}')
 
   def display_photo(self, filename):
     pixmap = QPixmap(filename)

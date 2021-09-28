@@ -15,7 +15,8 @@ PHOTOBOOTH_WINDOW_NAME = 'Photobooth'
 PHOTOS_DIR = 'photos'
 
 # Load settings
-settings = yaml.load(open("settings.yaml"), Loader=yaml.FullLoader)['settings']
+with open("settings.yaml", 'r') as stream:
+  settings = yaml.safe_load(stream)['settings']
 
 def send_email_with_attachment(receiver_email, filename):
   """
@@ -53,18 +54,13 @@ def send_email_with_attachment(receiver_email, filename):
   message.attach(part)
   text = message.as_string()
 
-  # Log in to server using secure context and send email
-  context = ssl.create_default_context()
   # Try to log in to server and send email
-  try:
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls(context=context) # Secure the connection
+  context = ssl.create_default_context()
+  with smtplib.SMTP("smtp.gmail.com", 587) as server:
+    # Secure the connection
+    server.starttls(context=context)
     server.login(sender_email, settings['SENDER_PASSWORD'])
     server.sendmail(sender_email, receiver_email, text)
-  except Exception as e:
-    print(e)
-  finally:
-    server.quit()
 
 def take_picture():
   """
@@ -112,11 +108,12 @@ def take_picture():
     cv2.waitKey(2000)
 
     # Save the frame
-    cv2.imwrite(f'{PHOTOS_DIR}/{filename}.jpg', img)
+    saved_photo = f'{PHOTOS_DIR}/{filename}.jpg'
+    cv2.imwrite(saved_photo, img)
   
   # close the camera
   cap.release()
     
   # close all the opened windows
   cv2.destroyAllWindows()
-  return filename
+  return saved_photo
