@@ -18,9 +18,11 @@ PHOTOS_DIR = 'photos'
 with open("settings.yaml", 'r') as stream:
   settings = yaml.safe_load(stream)['settings']
 
+
 def send_email_with_attachment(receiver_email, filename):
   """
-  Sends an email to the provided receiver email, with the provided file attached
+  Sends an email to the provided receiver email,
+  with the provided file attached
   """
   sender_email = settings['SENDER_EMAIL']
 
@@ -41,7 +43,7 @@ def send_email_with_attachment(receiver_email, filename):
     part = MIMEBase("application", "octet-stream")
     part.set_payload(attachment.read())
 
-  # Encode file in ASCII characters to send by email    
+  # Encode file in ASCII characters to send by email
   encoders.encode_base64(part)
 
   # Add header as key/value pair to attachment part
@@ -61,6 +63,7 @@ def send_email_with_attachment(receiver_email, filename):
     server.starttls(context=context)
     server.login(sender_email, settings['SENDER_PASSWORD'])
     server.sendmail(sender_email, receiver_email, text)
+
 
 def take_picture():
   """
@@ -110,10 +113,10 @@ def take_picture():
     # Save the frame
     saved_photo = f'{PHOTOS_DIR}/{filename}.jpg'
     cv2.imwrite(saved_photo, img)
-  
+
   # close the camera
   cap.release()
-    
+
   # close all the opened windows
   cv2.destroyAllWindows()
   return saved_photo

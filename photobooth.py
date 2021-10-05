@@ -9,19 +9,23 @@ from PyQt5.QtWidgets import (
   QMainWindow,
   QLabel,
 )
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QIcon, QPixmap
 from util import send_email_with_attachment, take_picture
 
 
 PHOTOS_DIR = 'photos'
 LETTER_BUTTON_WIDTH = 30
 LETTER_BUTTON_HEIGHT = 30
+ICON_BUTTON_WIDTH = 60
+ICON_BUTTON_HEIGHT = 60
 
 NUMBER_LINE_HEIGHT = 100
 FIRST_LETTER_LINE_HEIGHT = 140
 SECOND_LETTER_LINE_HEIGHT = 180
 THIRD_LETTER_LINE_HEIGHT = 220
 FOURTH_LINE_HEIGHT = 260
+ICON_BUTTON_LINE_HEIGHT = 300
+
 
 class App(QMainWindow):
 
@@ -34,7 +38,7 @@ class App(QMainWindow):
     self.width = 1000
     self.height = 700
     self.initUI()
-  
+
   def initUI(self):
     try:
       os.makedirs(PHOTOS_DIR)
@@ -45,25 +49,45 @@ class App(QMainWindow):
     self.setWindowTitle(self.title)
     self.setGeometry(self.left, self.top, self.width, self.height)
 
+    self.is_in_progress = False
+
     # Create textbox
     self.textbox = QLineEdit(self)
     self.textbox.move(10, 20)
     self.textbox.resize(275, 30)
     self.textbox.setText("cerigo3@gmail.com")
-    
-    self.send_email_button = QPushButton('Send email', self)
+
+    self.send_email_button = QPushButton('', self)
+    self.send_email_button.setIcon(QIcon('assets/email.svg'))
     self.send_email_button.move(10, 60)
 
-    self.take_picture_button = QPushButton('Take a picture', self)
-    self.take_picture_button.move(185, 60)
+    self.take_picture_button = QPushButton('', self)
+    self.take_picture_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.take_picture_button.setIcon(QIcon('assets/photo.svg'))
+    self.take_picture_button.move(10, ICON_BUTTON_LINE_HEIGHT)
+
+    self.take_pictures_button = QPushButton('', self)
+    self.take_pictures_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.take_pictures_button.setIcon(QIcon('assets/photos.svg'))
+    self.take_pictures_button.move(80, ICON_BUTTON_LINE_HEIGHT)
+
+    self.record_gif_button = QPushButton('', self)
+    self.record_gif_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.record_gif_button.setIcon(QIcon('assets/gif.png'))
+    self.record_gif_button.move(150, ICON_BUTTON_LINE_HEIGHT)
+
+    self.record_video_button = QPushButton('', self)
+    self.record_video_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.record_video_button.setIcon(QIcon('assets/video.svg'))
+    self.record_video_button.move(220, ICON_BUTTON_LINE_HEIGHT)
 
     self.clear_email_button = QPushButton('X', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
-    self.clear_email_button.move(300, 20)
+    self.clear_email_button.move(290, 20)
 
     self.backspace_button = QPushButton('<-', self)
     self.backspace_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
-    self.backspace_button.move(300, 60)
+    self.backspace_button.move(290, 60)
 
     # NUMBERS
 
@@ -246,12 +270,16 @@ class App(QMainWindow):
     if len(photos) > 0:
       self.latest_photo = photos[-1]
       self.display_photo(f'{self.latest_photo}')
-    
+
     # connect buttons to functions
     self.send_email_button.clicked.connect(self.on_click_send_email)
-    self.take_picture_button.clicked.connect(self.on_click_take_picture)
     self.clear_email_button.clicked.connect(self.on_click_clear_email)
     self.backspace_button.clicked.connect(self.on_click_backspace)
+
+    self.take_picture_button.clicked.connect(self.on_click_take_picture)
+    self.take_pictures_button.clicked.connect(self.on_click_take_pictures)
+    self.record_gif_button.clicked.connect(self.on_click_record_gif)
+    self.record_video_button.clicked.connect(self.on_click_record_video)
 
     self.button_1.clicked.connect(lambda: self.on_click_add_to_email('1'))
     self.button_2.clicked.connect(lambda: self.on_click_add_to_email('2'))
@@ -295,19 +323,40 @@ class App(QMainWindow):
     self.dot_button.clicked.connect(lambda: self.on_click_add_to_email('.'))
     self.at_button.clicked.connect(lambda: self.on_click_add_to_email('@'))
 
-    self.gmail_button.clicked.connect(lambda: self.on_click_add_to_email('@gmail.com'))
-    self.yahoo_button.clicked.connect(lambda: self.on_click_add_to_email('@yahoo.com'))
-    self.hotmail_button.clicked.connect(lambda: self.on_click_add_to_email('@hotmail.com'))
+    self.gmail_button.clicked.connect(
+      lambda: self.on_click_add_to_email('@gmail.com')
+    )
+    self.yahoo_button.clicked.connect(
+      lambda: self.on_click_add_to_email('@yahoo.com')
+    )
+    self.hotmail_button.clicked.connect(
+      lambda: self.on_click_add_to_email('@hotmail.com')
+    )
 
     self.show()
-  
+
   def on_click_send_email(self):
     textboxValue = self.textbox.text()
-    send_email_with_attachment(textboxValue, self.latest_photo)
-  
+    # Defend against empty email
+    if len(textboxValue) > 0:
+      send_email_with_attachment(textboxValue, self.latest_photo)
+
   def on_click_take_picture(self):
-    self.latest_photo = take_picture()
-    self.display_photo(f'{self.latest_photo}')
+    # Defend against multiple clicks
+    if self.is_in_progress is False:
+      self.is_in_progress = True
+      self.latest_photo = take_picture()
+      self.display_photo(f'{self.latest_photo}')
+      self.is_in_progress = False
+
+  def on_click_take_pictures(self):
+    print("take pictures")
+
+  def on_click_record_gif(self):
+    print("record gif")
+
+  def on_click_record_video(self):
+    print("record video")
 
   def on_click_clear_email(self):
     self.textbox.setText('')
@@ -322,7 +371,8 @@ class App(QMainWindow):
     pixmap = QPixmap(filename)
     self.photo_display.setPixmap(pixmap)
     self.photo_display.move(360, 20)
-    self.photo_display.resize(pixmap.width() - 10,pixmap.height())
+    self.photo_display.resize(pixmap.width() - 10, pixmap.height())
+
 
 if __name__ == '__main__':
   app = QApplication(sys.argv)
