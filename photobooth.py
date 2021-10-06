@@ -339,7 +339,7 @@ class App(QMainWindow):
     textboxValue = self.textbox.text()
     # Defend against empty email
     if len(textboxValue) > 0:
-      send_email_with_attachment(textboxValue, self.latest_photo)
+      send_email_with_attachment(textboxValue, [self.latest_photo])
 
   def on_click_take_picture(self):
     # Defend against multiple clicks

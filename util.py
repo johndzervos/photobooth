@@ -19,7 +19,7 @@ with open("settings.yaml", 'r') as stream:
   settings = yaml.safe_load(stream)['settings']
 
 
-def send_email_with_attachment(receiver_email, filename):
+def send_email_with_attachment(receiver_email: str, filenames_list: list):
   """
   Sends an email to the provided receiver email,
   with the provided file attached
@@ -36,21 +36,20 @@ def send_email_with_attachment(receiver_email, filename):
   # Add body to email
   message.attach(MIMEText(settings['EMAIL_BODY'], "plain"))
 
-  # Open file in binary mode
-  with open(filename, "rb") as attachment:
+  for filename in filenames_list:
     # Add file as application/octet-stream
-    # Email client can usually download this automatically as attachment
-    part = MIMEBase("application", "octet-stream")
-    part.set_payload(attachment.read())
+    part = MIMEBase('application', "octet-stream")
+    part.set_payload(open(filename, "rb").read())
 
-  # Encode file in ASCII characters to send by email
-  encoders.encode_base64(part)
-
-  # Add header as key/value pair to attachment part
-  part.add_header(
-    "Content-Disposition",
-    f"attachment; filename= {filename}",
-  )
+    # Encode file in ASCII characters to send by email
+    encoders.encode_base64(part)
+    # Add header as key/value pair to attachment part
+    part.add_header(
+        'Content-Disposition',
+        'attachment',
+        filename=filename
+    )
+    message.attach(part)
 
   # Add attachment to message and convert message to string
   message.attach(part)
