@@ -3,14 +3,14 @@ import sys
 import os
 import glob
 from PyQt5.QtWidgets import (
-  QApplication,
-  QPushButton,
-  QLineEdit,
-  QMainWindow,
-  QLabel,
+    QApplication,
+    QPushButton,
+    QLineEdit,
+    QMainWindow,
+    QLabel,
 )
-from PyQt5.QtGui import QIcon, QPixmap
-from util import send_email_with_attachment, take_picture
+from PyQt5.QtGui import QIcon, QMovie, QPixmap
+from util import create_gif, send_email_with_attachment, take_picture
 
 
 PHOTOS_DIR = 'photos'
@@ -34,7 +34,6 @@ class App(QMainWindow):
   def __init__(self):
     super().__init__()
     self.title = 'Photobooth App'
-    self.latest_photo = ''
     self.latest_photos = []
     self.left = 10
     self.top = 10
@@ -268,12 +267,17 @@ class App(QMainWindow):
 
     # Create photo display
     self.photo_display = QLabel(self)
+
     # Find the most recent photo in the photos directory
-    photos = sorted(glob.glob(f"{PHOTOS_DIR}/*.jpg"))
+    photos = sorted(glob.glob(f"{PHOTOS_DIR}/*"))
     if len(photos) > 0:
-      self.latest_photo = photos[-1]
       self.latest_photos = [photos[-1]]
-      self.display_photo(f'{self.latest_photo}')
+      if self.latest_photos[0][-4:] == '.jpg':
+        self.display_photo(f'{self.latest_photos[0]}')
+      elif self.latest_photos[0][-4:] == '.gif':
+        self.display_gif(f'{self.latest_photos[0]}')
+      else:
+        print(f"unknown format: {self.latest_photos[0][-4:]}")
 
     # connect buttons to functions
     self.send_email_button.clicked.connect(self.on_click_send_email)
@@ -328,13 +332,13 @@ class App(QMainWindow):
     self.at_button.clicked.connect(lambda: self.on_click_add_to_email('@'))
 
     self.gmail_button.clicked.connect(
-      lambda: self.on_click_add_to_email('@gmail.com')
+        lambda: self.on_click_add_to_email('@gmail.com')
     )
     self.yahoo_button.clicked.connect(
-      lambda: self.on_click_add_to_email('@yahoo.com')
+        lambda: self.on_click_add_to_email('@yahoo.com')
     )
     self.hotmail_button.clicked.connect(
-      lambda: self.on_click_add_to_email('@hotmail.com')
+        lambda: self.on_click_add_to_email('@hotmail.com')
     )
 
     self.show()
@@ -350,9 +354,8 @@ class App(QMainWindow):
     if self.is_in_progress is False:
       self.is_in_progress = True
       photo_taken = take_picture()
-      self.latest_photo = photo_taken
       self.latest_photos = [photo_taken]
-      self.display_photo(f'{self.latest_photo}')
+      self.display_photo(f'{photo_taken}')
       self.is_in_progress = False
 
   def on_click_take_pictures(self):
@@ -360,13 +363,22 @@ class App(QMainWindow):
     if self.is_in_progress is False:
       self.is_in_progress = True
       self.latest_photos = [
-        take_picture()
-        for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
+          take_picture()
+          for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
       ]
       self.is_in_progress = False
 
   def on_click_record_gif(self):
-    print("record gif")
+    # Defend against multiple button clicks
+    if self.is_in_progress is False:
+      self.is_in_progress = True
+      self.latest_photos = [
+          take_picture()
+          for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
+      ]
+      self.latest_photos = [create_gif(self.latest_photos)]
+      self.display_gif(f'{self.latest_photos[0]}')
+      self.is_in_progress = False
 
   def on_click_record_video(self):
     print("record video")
@@ -385,6 +397,14 @@ class App(QMainWindow):
     self.photo_display.setPixmap(pixmap)
     self.photo_display.move(360, 20)
     self.photo_display.resize(pixmap.width() - 10, pixmap.height())
+
+  def display_gif(self, filename):
+    pixmap = QPixmap(filename)
+    self.photo_display.move(360, 20)
+    self.photo_display.resize(pixmap.width() - 10, pixmap.height())
+    self.movie = QMovie(filename)
+    self.photo_display.setMovie(self.movie)
+    self.movie.start()
 
 
 if __name__ == '__main__':

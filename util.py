@@ -4,6 +4,7 @@ import yaml
 import cv2
 import time
 from datetime import datetime
+from PIL import Image
 
 from email import encoders
 from email.mime.base import MIMEBase
@@ -101,7 +102,7 @@ def take_picture():
     cur = time.time()
 
     # Update and keep track of Countdown
-    if cur-prev >= 1:
+    if cur - prev >= 1:
       prev = cur
       timer = timer - 1
 
@@ -126,3 +127,18 @@ def take_picture():
   # close all the opened windows
   cv2.destroyAllWindows()
   return saved_photo
+
+
+def create_gif(photos_list: list):
+  filename = datetime.now().strftime("%Y%m%d%H%M%S")
+  saved_gif = f'{PHOTOS_DIR}/{filename}.gif'
+  img, *imgs = [Image.open(f) for f in photos_list]
+  img.save(
+      fp=saved_gif,
+      format='GIF',
+      append_images=imgs,
+      save_all=True,
+      duration=300,
+      loop=0
+  )
+  return saved_gif
