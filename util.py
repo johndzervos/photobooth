@@ -76,6 +76,13 @@ def take_picture():
 
   timer = COUNTDOWN_TIMER
 
+  cv2.namedWindow(PHOTOBOOTH_WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
+  cv2.setWindowProperty(
+      PHOTOBOOTH_WINDOW_NAME,
+      cv2.WND_PROP_FULLSCREEN,
+      cv2.WINDOW_FULLSCREEN
+  )
+
   while timer >= 0:
     ret, img = cap.read()
     # Mirror image

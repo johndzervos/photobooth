@@ -26,6 +26,8 @@ THIRD_LETTER_LINE_HEIGHT = 220
 FOURTH_LINE_HEIGHT = 260
 ICON_BUTTON_LINE_HEIGHT = 300
 
+N_NUMBER_MULTIPLE_PHOTOS = 4
+
 
 class App(QMainWindow):
 
@@ -33,6 +35,7 @@ class App(QMainWindow):
     super().__init__()
     self.title = 'Photobooth App'
     self.latest_photo = ''
+    self.latest_photos = []
     self.left = 10
     self.top = 10
     self.width = 1000
@@ -269,6 +272,7 @@ class App(QMainWindow):
     photos = sorted(glob.glob(f"{PHOTOS_DIR}/*.jpg"))
     if len(photos) > 0:
       self.latest_photo = photos[-1]
+      self.latest_photos = [photos[-1]]
       self.display_photo(f'{self.latest_photo}')
 
     # connect buttons to functions
@@ -339,18 +343,27 @@ class App(QMainWindow):
     textboxValue = self.textbox.text()
     # Defend against empty email
     if len(textboxValue) > 0:
-      send_email_with_attachment(textboxValue, [self.latest_photo])
+      send_email_with_attachment(textboxValue, self.latest_photos)
 
   def on_click_take_picture(self):
-    # Defend against multiple clicks
+    # Defend against multiple button clicks
     if self.is_in_progress is False:
       self.is_in_progress = True
-      self.latest_photo = take_picture()
+      photo_taken = take_picture()
+      self.latest_photo = photo_taken
+      self.latest_photos = [photo_taken]
       self.display_photo(f'{self.latest_photo}')
       self.is_in_progress = False
 
   def on_click_take_pictures(self):
-    print("take pictures")
+    # Defend against multiple button clicks
+    if self.is_in_progress is False:
+      self.is_in_progress = True
+      self.latest_photos = [
+        take_picture()
+        for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
+      ]
+      self.is_in_progress = False
 
   def on_click_record_gif(self):
     print("record gif")
