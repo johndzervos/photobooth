@@ -105,13 +105,11 @@ class App(QMainWindow):
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.clear_email_button.setIcon(QIcon('assets/eraser.svg'))
     self.clear_email_button.move(290, 20)
-    # TODO: Disable button if input is empty
 
     self.backspace_button = QPushButton('', self)
     self.backspace_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.backspace_button.setIcon(QIcon('assets/arrow-left.svg'))
     self.backspace_button.move(290, 60)
-    # TODO: Disable button if input is empty
 
     # NUMBERS
 
@@ -409,12 +407,19 @@ class App(QMainWindow):
 
   def on_click_clear_email(self):
     self.textbox.setText('')
+    self.clear_email_button.setEnabled(False)
+    self.backspace_button.setEnabled(False)
 
   def on_click_backspace(self):
     self.textbox.setText(f"{self.textbox.text()[:-1]}")
+    if len(self.textbox.text()) == 0:
+      self.clear_email_button.setEnabled(False)
+      self.backspace_button.setEnabled(False)
 
   def on_click_add_to_email(self, string):
     self.textbox.setText(f"{self.textbox.text()}{string}")
+    self.clear_email_button.setEnabled(True)
+    self.backspace_button.setEnabled(True)
 
   def display_latest_file(self):
     if len(self.latest_files) > 0:
