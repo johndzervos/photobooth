@@ -1,5 +1,5 @@
 settings:
-  EMAIL_SUBJECT: 'Photobooth photo'
-  EMAIL_BODY: 'A photo taken with the photobooth app is attached'
+  EMAIL_SUBJECT: 'Photobooth file'
+  EMAIL_BODY: 'A file taken with the photobooth app is attached'
   SENDER_EMAIL: 'your_email@gmail.com'
   SENDER_PASSWORD: 'your_password'

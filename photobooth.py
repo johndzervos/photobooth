@@ -12,14 +12,15 @@ from PyQt5.QtWidgets import (
 )
 
 from util import (
+    FILES_DIR,
     create_gif,
     delete_files,
     get_latest_file,
+    record_video,
     send_email_with_attachment,
     take_picture
 )
 
-PHOTOS_DIR = 'photos'
 LETTER_BUTTON_WIDTH = 30
 LETTER_BUTTON_HEIGHT = 30
 ICON_BUTTON_WIDTH = 60
@@ -40,7 +41,7 @@ class App(QMainWindow):
   def __init__(self):
     super().__init__()
     self.title = 'Photobooth App'
-    self.latest_photos = []
+    self.latest_files = []
     self.left = 10
     self.top = 10
     self.width = 1000
@@ -49,7 +50,7 @@ class App(QMainWindow):
 
   def initUI(self):
     try:
-      os.makedirs(PHOTOS_DIR)
+      os.makedirs(FILES_DIR)
     except FileExistsError:
       # directory already exists
       pass
@@ -276,10 +277,10 @@ class App(QMainWindow):
     # Create photo display
     self.photo_display = QLabel(self)
 
-    self.latest_photos = get_latest_file()
+    self.latest_files = get_latest_file()
     self.display_latest_file()
 
-    # connect buttons to functions
+    # Connect buttons to functions
     self.send_email_button.clicked.connect(self.on_click_send_email)
     self.clear_email_button.clicked.connect(self.on_click_clear_email)
     self.backspace_button.clicked.connect(self.on_click_backspace)
@@ -348,14 +349,14 @@ class App(QMainWindow):
     textboxValue = self.textbox.text()
     # Defend against empty email
     if len(textboxValue) > 0:
-      send_email_with_attachment(textboxValue, self.latest_photos)
+      send_email_with_attachment(textboxValue, self.latest_files)
 
   def on_click_take_picture(self):
     # Defend against multiple button clicks
     if self.is_in_progress is False:
       self.is_in_progress = True
       photo_taken = take_picture()
-      self.latest_photos = [photo_taken]
+      self.latest_files = [photo_taken]
       self.display_photo(f'{photo_taken}')
       self.is_in_progress = False
 
@@ -363,30 +364,32 @@ class App(QMainWindow):
     # Defend against multiple button clicks
     if self.is_in_progress is False:
       self.is_in_progress = True
-      self.latest_photos = [
+      photos_taken = [
           take_picture()
           for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
       ]
+      self.latest_files = photos_taken
       self.is_in_progress = False
 
   def on_click_record_gif(self):
     # Defend against multiple button clicks
     if self.is_in_progress is False:
       self.is_in_progress = True
-      self.latest_photos = [
+      self.latest_files = [
           take_picture()
           for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
       ]
-      self.latest_photos = [create_gif(self.latest_photos)]
-      self.display_gif(f'{self.latest_photos[0]}')
+      self.latest_files = [create_gif(self.latest_files)]
+      self.display_gif(f'{self.latest_files[0]}')
       self.is_in_progress = False
 
   def on_click_record_video(self):
-    print("record video")
+    self.latest_files = [record_video()]
+    self.display_latest_file()
 
   def on_click_delete_latest(self):
-    delete_files(self.latest_photos)
-    self.latest_photos = get_latest_file()
+    delete_files(self.latest_files)
+    self.latest_files = get_latest_file()
     self.display_latest_file()
 
   def on_click_clear_email(self):
@@ -399,13 +402,16 @@ class App(QMainWindow):
     self.textbox.setText(f"{self.textbox.text()}{string}")
 
   def display_latest_file(self):
-    if len(self.latest_photos) > 0:
-      if self.latest_photos[0][-4:] == '.jpg':
-        self.display_photo(f'{self.latest_photos[0]}')
-      elif self.latest_photos[0][-4:] == '.gif':
-        self.display_gif(f'{self.latest_photos[0]}')
+    if len(self.latest_files) > 0:
+      extension = self.latest_files[0][-4:]
+      if extension == '.jpg':
+        self.display_photo(f'{self.latest_files[0]}')
+      elif extension == '.gif':
+        self.display_gif(f'{self.latest_files[0]}')
+      elif extension == '.avi':
+        self.display_video(f'{self.latest_files[0]}')
       else:
-        print(f"unknown format: {self.latest_photos[0][-4:]}")
+        print(f"unknown format: {extension}")
     else:
       self.photo_display.clear()
 
@@ -422,6 +428,10 @@ class App(QMainWindow):
     self.movie = QMovie(filename)
     self.photo_display.setMovie(self.movie)
     self.movie.start()
+
+  def display_video(self, filename):
+    print(filename)
+    # TODO
 
 
 if __name__ == '__main__':

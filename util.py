@@ -1,27 +1,32 @@
 import glob
-import smtplib
-import ssl
-import yaml
-import cv2
-import time
 import os
 import shutil
+import smtplib
+import ssl
+import time
 from datetime import datetime
-from PIL import Image
-
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import cv2
+import yaml
+from PIL import Image
+
 COUNTDOWN_TIMER = int(3)
+RECORDING_TIME = int(5)
 PHOTOBOOTH_WINDOW_NAME = 'Photobooth'
-PHOTOS_DIR = 'photos'
+FILES_DIR = 'files'
 DELETED_DIR = 'deleted'
 
 # Load settings
 with open("settings.yaml", 'r') as stream:
   settings = yaml.safe_load(stream)['settings']
+
+
+def get_filename():
+  return datetime.now().strftime("%Y%m%d%H%M%S")
 
 
 def send_email_with_attachment(receiver_email: str, filenames_list: list):
@@ -74,11 +79,12 @@ def take_picture():
   Opens the camera, displays a countdown and after COUNTDOWN_TIMER seconds,
   the frame is saved in the photos directory.
   """
+  filename = get_filename()
+  saved_photo = f'{FILES_DIR}/{filename}.jpg'
   # Open the camera
   cap = cv2.VideoCapture(0)
-  prev = time.time()
-  filename = datetime.now().strftime("%Y%m%d%H%M%S")
 
+  prev = time.time()
   timer = COUNTDOWN_TIMER
 
   cv2.namedWindow(PHOTOBOOTH_WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
@@ -89,7 +95,7 @@ def take_picture():
   )
 
   while timer >= 0:
-    ret, img = cap.read()
+    _, img = cap.read()
     # Mirror image
     img = cv2.flip(img, 1)
 
@@ -111,7 +117,7 @@ def take_picture():
       timer = timer - 1
 
   else:
-    ret, img = cap.read()
+    _, img = cap.read()
     # Mirror image
     img = cv2.flip(img, 1)
 
@@ -122,7 +128,6 @@ def take_picture():
     cv2.waitKey(2000)
 
     # Save the frame
-    saved_photo = f'{PHOTOS_DIR}/{filename}.jpg'
     cv2.imwrite(saved_photo, img)
 
   # close the camera
@@ -133,9 +138,48 @@ def take_picture():
   return saved_photo
 
 
+def record_video():
+  filename = get_filename()
+  saved_video = f"{FILES_DIR}/{filename}.avi"
+
+  cap = cv2.VideoCapture(0)
+
+  cv2.namedWindow(PHOTOBOOTH_WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
+  cv2.setWindowProperty(
+      PHOTOBOOTH_WINDOW_NAME,
+      cv2.WND_PROP_FULLSCREEN,
+      cv2.WINDOW_FULLSCREEN
+  )
+
+  width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+  height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+  writer = cv2.VideoWriter(
+      saved_video,
+      cv2.VideoWriter_fourcc(*'DIVX'),
+      20,
+      (width, height)
+  )
+
+  start_time = time.time()
+  while(int(time.time() - start_time) < RECORDING_TIME):
+    _, frame = cap.read()
+    # Mirror image
+    frame = cv2.flip(frame, 1)
+    writer.write(frame)
+    cv2.imshow(PHOTOBOOTH_WINDOW_NAME, frame)
+    cv2.waitKey(1)
+
+  cap.release()
+  writer.release()
+  # close all the opened windows
+  cv2.destroyAllWindows()
+  return saved_video
+
+
 def create_gif(photos_list: list):
   filename = datetime.now().strftime("%Y%m%d%H%M%S")
-  saved_gif = f'{PHOTOS_DIR}/{filename}.gif'
+  saved_gif = f'{FILES_DIR}/{filename}.gif'
   img, *imgs = [Image.open(f) for f in photos_list]
   img.save(
       fp=saved_gif,
@@ -150,7 +194,7 @@ def create_gif(photos_list: list):
 
 def get_latest_file() -> list:
   # Find the most recent photo in the photos directory
-  photos = sorted(glob.glob(f"{PHOTOS_DIR}/*"))
+  photos = sorted(glob.glob(f"{FILES_DIR}/*"))
   if len(photos) == 0:
     return []
   return [photos[-1]]
@@ -163,4 +207,4 @@ def delete_files(filenames: list):
     # directory already exists
     pass
   for file in filenames:
-    shutil.move(file, file.replace(f"{PHOTOS_DIR}", f"{DELETED_DIR}"))
+    shutil.move(file, file.replace(f"{FILES_DIR}", f"{DELETED_DIR}"))
