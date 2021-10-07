@@ -69,41 +69,49 @@ class App(QMainWindow):
     self.send_email_button = QPushButton('', self)
     self.send_email_button.setIcon(QIcon('assets/email.svg'))
     self.send_email_button.move(10, 60)
+    # TODO: Disable button if it is not a valid email.
 
     self.take_picture_button = QPushButton('', self)
     self.take_picture_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.take_picture_button.setIcon(QIcon('assets/photo.svg'))
     self.take_picture_button.move(10, ICON_BUTTON_LINE_HEIGHT)
+    # TODO: Disable button if is_in_progress is True
 
     self.take_pictures_button = QPushButton('', self)
     self.take_pictures_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.take_pictures_button.setIcon(QIcon('assets/photos.svg'))
     self.take_pictures_button.move(80, ICON_BUTTON_LINE_HEIGHT)
+    # TODO: Disable button if is_in_progress is True
 
     self.record_gif_button = QPushButton('', self)
     self.record_gif_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.record_gif_button.setIcon(QIcon('assets/gif.png'))
     self.record_gif_button.move(150, ICON_BUTTON_LINE_HEIGHT)
+    # TODO: Disable button if is_in_progress is True
 
     self.record_video_button = QPushButton('', self)
     self.record_video_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.record_video_button.setIcon(QIcon('assets/video.svg'))
     self.record_video_button.move(220, ICON_BUTTON_LINE_HEIGHT)
+    # TODO: Disable button if is_in_progress is True
 
     self.delete_button = QPushButton('', self)
     self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.delete_button.setIcon(QIcon('assets/trash.svg'))
     self.delete_button.move(600, 600)
+    # TODO: Disable button if there isn't any photo to display
 
     self.clear_email_button = QPushButton('', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.clear_email_button.setIcon(QIcon('assets/eraser.svg'))
     self.clear_email_button.move(290, 20)
+    # TODO: Disable button if input is empty
 
     self.backspace_button = QPushButton('', self)
     self.backspace_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.backspace_button.setIcon(QIcon('assets/arrow-left.svg'))
     self.backspace_button.move(290, 60)
+    # TODO: Disable button if input is empty
 
     # NUMBERS
 
@@ -278,7 +286,6 @@ class App(QMainWindow):
 
     # Create photo display
     self.photo_display = QLabel(self)
-
     self.latest_files = get_latest_file()
     self.display_latest_file()
 
@@ -371,6 +378,8 @@ class App(QMainWindow):
           for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
       ]
       self.latest_files = photos_taken
+      # TODO Display all photos_taken
+      self.display_photo(f'{photos_taken[0]}')
       self.is_in_progress = False
 
   def on_click_record_gif(self):
@@ -386,8 +395,12 @@ class App(QMainWindow):
       self.is_in_progress = False
 
   def on_click_record_video(self):
-    self.latest_files = [record_video()]
-    self.display_latest_file()
+    # Defend against multiple button clicks
+    if self.is_in_progress is False:
+      self.is_in_progress = True
+      self.latest_files = [record_video()]
+      self.display_latest_file()
+      self.is_in_progress = False
 
   def on_click_delete_latest(self):
     delete_files(self.latest_files)
@@ -433,7 +446,7 @@ class App(QMainWindow):
 
   def display_video(self, filename):
     print(filename)
-    # TODO
+    # TODO Add support for video player
 
 
 if __name__ == '__main__':

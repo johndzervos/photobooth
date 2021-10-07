@@ -36,6 +36,8 @@ def send_email_with_attachment(receiver_email: str, filenames_list: list):
   """
   sender_email = settings['SENDER_EMAIL']
 
+  # TODO: Create pdf with jinja2 template and include it in the attachments
+
   # Create a multipart message and set headers
   message = MIMEMultipart()
   message["From"] = sender_email
