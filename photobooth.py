@@ -95,12 +95,14 @@ class App(QMainWindow):
     self.delete_button.setIcon(QIcon('assets/trash.svg'))
     self.delete_button.move(600, 600)
 
-    self.clear_email_button = QPushButton('X', self)
+    self.clear_email_button = QPushButton('', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
+    self.clear_email_button.setIcon(QIcon('assets/eraser.svg'))
     self.clear_email_button.move(290, 20)
 
-    self.backspace_button = QPushButton('<-', self)
+    self.backspace_button = QPushButton('', self)
     self.backspace_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
+    self.backspace_button.setIcon(QIcon('assets/arrow-left.svg'))
     self.backspace_button.move(290, 60)
 
     # NUMBERS
