@@ -1,8 +1,11 @@
+import glob
 import smtplib
 import ssl
 import yaml
 import cv2
 import time
+import os
+import shutil
 from datetime import datetime
 from PIL import Image
 
@@ -14,6 +17,7 @@ from email.mime.text import MIMEText
 COUNTDOWN_TIMER = int(3)
 PHOTOBOOTH_WINDOW_NAME = 'Photobooth'
 PHOTOS_DIR = 'photos'
+DELETED_DIR = 'deleted'
 
 # Load settings
 with open("settings.yaml", 'r') as stream:
@@ -142,3 +146,21 @@ def create_gif(photos_list: list):
       loop=0
   )
   return saved_gif
+
+
+def get_latest_file() -> list:
+  # Find the most recent photo in the photos directory
+  photos = sorted(glob.glob(f"{PHOTOS_DIR}/*"))
+  if len(photos) == 0:
+    return []
+  return [photos[-1]]
+
+
+def delete_files(filenames: list):
+  try:
+    os.makedirs(DELETED_DIR)
+  except FileExistsError:
+    # directory already exists
+    pass
+  for file in filenames:
+    shutil.move(file, file.replace(f"{PHOTOS_DIR}", f"{DELETED_DIR}"))

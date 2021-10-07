@@ -1,17 +1,23 @@
 
-import sys
 import os
-import glob
+import sys
+
+from PyQt5.QtGui import QIcon, QMovie, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
-    QPushButton,
+    QLabel,
     QLineEdit,
     QMainWindow,
-    QLabel,
+    QPushButton
 )
-from PyQt5.QtGui import QIcon, QMovie, QPixmap
-from util import create_gif, send_email_with_attachment, take_picture
 
+from util import (
+    create_gif,
+    delete_files,
+    get_latest_file,
+    send_email_with_attachment,
+    take_picture
+)
 
 PHOTOS_DIR = 'photos'
 LETTER_BUTTON_WIDTH = 30
@@ -82,6 +88,11 @@ class App(QMainWindow):
     self.record_video_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.record_video_button.setIcon(QIcon('assets/video.svg'))
     self.record_video_button.move(220, ICON_BUTTON_LINE_HEIGHT)
+
+    self.delete_button = QPushButton('', self)
+    self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.delete_button.setIcon(QIcon('assets/trash.svg'))
+    self.delete_button.move(600, 600)
 
     self.clear_email_button = QPushButton('X', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
@@ -254,30 +265,19 @@ class App(QMainWindow):
     # FOURTH LINE
 
     self.gmail_button = QPushButton('@gmail.com', self)
-    # self.gmail_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.gmail_button.move(10, FOURTH_LINE_HEIGHT)
 
     self.yahoo_button = QPushButton('@yahoo.com', self)
-    # self.yahoo_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.yahoo_button.move(115, FOURTH_LINE_HEIGHT)
 
     self.hotmail_button = QPushButton('@hotmail.com', self)
-    # self.hotmail_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.hotmail_button.move(220, FOURTH_LINE_HEIGHT)
 
     # Create photo display
     self.photo_display = QLabel(self)
 
-    # Find the most recent photo in the photos directory
-    photos = sorted(glob.glob(f"{PHOTOS_DIR}/*"))
-    if len(photos) > 0:
-      self.latest_photos = [photos[-1]]
-      if self.latest_photos[0][-4:] == '.jpg':
-        self.display_photo(f'{self.latest_photos[0]}')
-      elif self.latest_photos[0][-4:] == '.gif':
-        self.display_gif(f'{self.latest_photos[0]}')
-      else:
-        print(f"unknown format: {self.latest_photos[0][-4:]}")
+    self.latest_photos = get_latest_file()
+    self.display_latest_file()
 
     # connect buttons to functions
     self.send_email_button.clicked.connect(self.on_click_send_email)
@@ -288,6 +288,7 @@ class App(QMainWindow):
     self.take_pictures_button.clicked.connect(self.on_click_take_pictures)
     self.record_gif_button.clicked.connect(self.on_click_record_gif)
     self.record_video_button.clicked.connect(self.on_click_record_video)
+    self.delete_button.clicked.connect(self.on_click_delete_latest)
 
     self.button_1.clicked.connect(lambda: self.on_click_add_to_email('1'))
     self.button_2.clicked.connect(lambda: self.on_click_add_to_email('2'))
@@ -383,6 +384,11 @@ class App(QMainWindow):
   def on_click_record_video(self):
     print("record video")
 
+  def on_click_delete_latest(self):
+    delete_files(self.latest_photos)
+    self.latest_photos = get_latest_file()
+    self.display_latest_file()
+
   def on_click_clear_email(self):
     self.textbox.setText('')
 
@@ -391,6 +397,17 @@ class App(QMainWindow):
 
   def on_click_add_to_email(self, string):
     self.textbox.setText(f"{self.textbox.text()}{string}")
+
+  def display_latest_file(self):
+    if len(self.latest_photos) > 0:
+      if self.latest_photos[0][-4:] == '.jpg':
+        self.display_photo(f'{self.latest_photos[0]}')
+      elif self.latest_photos[0][-4:] == '.gif':
+        self.display_gif(f'{self.latest_photos[0]}')
+      else:
+        print(f"unknown format: {self.latest_photos[0][-4:]}")
+    else:
+      self.photo_display.clear()
 
   def display_photo(self, filename):
     pixmap = QPixmap(filename)
