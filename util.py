@@ -2,6 +2,7 @@ import glob
 import os
 import shutil
 import smtplib
+import re
 import ssl
 import time
 from datetime import datetime
@@ -31,6 +32,11 @@ with open("settings.yaml", 'r') as stream:
 
 def get_filename():
   return datetime.now().strftime("%Y%m%d%H%M%S")
+
+
+def validate_email(email):
+  pattern = re.compile(r"\"?([-a-zA-Z0-9.`?{}]+@\w+\.\w+)\"?")
+  return re.match(pattern, email) is not None
 
 
 def send_email_with_attachment(receiver_email: str, filenames_list: list):
