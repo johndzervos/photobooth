@@ -9,6 +9,8 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from jinja2 import Environment, FileSystemLoader
+from weasyprint import HTML
 
 import cv2
 import yaml
@@ -19,6 +21,8 @@ RECORDING_TIME = int(5)
 PHOTOBOOTH_WINDOW_NAME = 'Photobooth'
 FILES_DIR = 'files'
 DELETED_DIR = 'deleted'
+PDF_DIR = 'assets/pdf/'
+PDF_TEMPLATE = 'template.html'
 
 # Load settings
 with open("settings.yaml", 'r') as stream:
@@ -32,11 +36,13 @@ def get_filename():
 def send_email_with_attachment(receiver_email: str, filenames_list: list):
   """
   Sends an email to the provided receiver email,
-  with the provided file attached
+  with the provided files attached
   """
   sender_email = settings['SENDER_EMAIL']
 
-  # TODO: Create pdf with jinja2 template and include it in the attachments
+  # Create pdf and include it in the attachments
+  saved_pdf = generate_pdf(receiver_email)
+  filenames_list.append(saved_pdf)
 
   # Create a multipart message and set headers
   message = MIMEMultipart()
@@ -79,7 +85,7 @@ def send_email_with_attachment(receiver_email: str, filenames_list: list):
 def take_picture():
   """
   Opens the camera, displays a countdown and after COUNTDOWN_TIMER seconds,
-  the frame is saved in the photos directory.
+  the frame is saved in the files directory.
   """
   filename = get_filename()
   saved_photo = f'{FILES_DIR}/{filename}.jpg'
@@ -141,6 +147,9 @@ def take_picture():
 
 
 def record_video():
+  """
+  Use the camera to record a video
+  """
   filename = get_filename()
   saved_video = f"{FILES_DIR}/{filename}.avi"
 
@@ -180,7 +189,7 @@ def record_video():
 
 
 def create_gif(photos_list: list):
-  filename = datetime.now().strftime("%Y%m%d%H%M%S")
+  filename = get_filename()
   saved_gif = f'{FILES_DIR}/{filename}.gif'
   img, *imgs = [Image.open(f) for f in photos_list]
   img.save(
@@ -195,14 +204,19 @@ def create_gif(photos_list: list):
 
 
 def get_latest_file() -> list:
-  # Find the most recent photo in the photos directory
-  photos = sorted(glob.glob(f"{FILES_DIR}/*"))
+  """
+  Find the most recent file in the files directory, exclude pdfs
+  """
+  photos = sorted(glob.glob(f"{FILES_DIR}/*[!.pdf]"))
   if len(photos) == 0:
     return []
   return [photos[-1]]
 
 
 def delete_files(filenames: list):
+  """
+  Move the 'deleted' file to the deleted directory
+  """
   try:
     os.makedirs(DELETED_DIR)
   except FileExistsError:
@@ -210,3 +224,28 @@ def delete_files(filenames: list):
     pass
   for file in filenames:
     shutil.move(file, file.replace(f"{FILES_DIR}", f"{DELETED_DIR}"))
+
+
+def generate_pdf(email):
+  """
+  Generate pdf to be included as an attachment to the email.
+  The template is used, placed in pdf dir
+  """
+  filename = get_filename()
+  saved_pdf = f'{FILES_DIR}/{filename}.pdf'
+
+  env = Environment(loader=FileSystemLoader('.'))
+  # TODO: Improve the styling of the template
+  template = env.get_template(f"{PDF_DIR}{PDF_TEMPLATE}")
+  template_vars = {
+      'event': settings['EVENT_NAME'],
+      'date': settings['EVENT_DATE'],
+      'place': settings['EVENT_PLACE'],
+      'url': settings['EVENT_WEBSITE'],
+      'receiver_name': email.split('@')[0],
+      'body': settings['PDF_MESSAGE'],
+      'signature': settings['PDF_SIGNATURE'],
+  }
+  html_out = template.render(template_vars)
+  HTML(string=html_out).write_pdf(saved_pdf)
+  return saved_pdf

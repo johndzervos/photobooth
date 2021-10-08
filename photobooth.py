@@ -18,7 +18,8 @@ from util import (
     get_latest_file,
     record_video,
     send_email_with_attachment,
-    take_picture
+    take_picture,
+    generate_pdf,
 )
 
 LETTER_BUTTON_WIDTH = 30
@@ -58,8 +59,6 @@ class App(QMainWindow):
     self.setWindowTitle(self.title)
     self.setGeometry(self.left, self.top, self.width, self.height)
 
-    self.is_in_progress = False
-
     # Create textbox
     self.textbox = QLineEdit(self)
     self.textbox.move(10, 20)
@@ -75,25 +74,21 @@ class App(QMainWindow):
     self.take_picture_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.take_picture_button.setIcon(QIcon('assets/photo.svg'))
     self.take_picture_button.move(10, ICON_BUTTON_LINE_HEIGHT)
-    # TODO: Disable button if is_in_progress is True
 
     self.take_pictures_button = QPushButton('', self)
     self.take_pictures_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.take_pictures_button.setIcon(QIcon('assets/photos.svg'))
     self.take_pictures_button.move(80, ICON_BUTTON_LINE_HEIGHT)
-    # TODO: Disable button if is_in_progress is True
 
     self.record_gif_button = QPushButton('', self)
     self.record_gif_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.record_gif_button.setIcon(QIcon('assets/gif.png'))
     self.record_gif_button.move(150, ICON_BUTTON_LINE_HEIGHT)
-    # TODO: Disable button if is_in_progress is True
 
     self.record_video_button = QPushButton('', self)
     self.record_video_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.record_video_button.setIcon(QIcon('assets/video.svg'))
     self.record_video_button.move(220, ICON_BUTTON_LINE_HEIGHT)
-    # TODO: Disable button if is_in_progress is True
 
     self.delete_button = QPushButton('', self)
     self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
@@ -110,6 +105,11 @@ class App(QMainWindow):
     self.backspace_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.backspace_button.setIcon(QIcon('assets/arrow-left.svg'))
     self.backspace_button.move(290, 60)
+
+    # TODO: Remove pdf button
+    self.pdf_button = QPushButton('PDF', self)
+    self.pdf_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.pdf_button.move(700, 600)
 
     # NUMBERS
 
@@ -292,6 +292,8 @@ class App(QMainWindow):
     self.clear_email_button.clicked.connect(self.on_click_clear_email)
     self.backspace_button.clicked.connect(self.on_click_backspace)
 
+    self.pdf_button.clicked.connect(self.on_click_generate_pdf)
+
     self.take_picture_button.clicked.connect(self.on_click_take_picture)
     self.take_pictures_button.clicked.connect(self.on_click_take_pictures)
     self.record_gif_button.clicked.connect(self.on_click_record_gif)
@@ -359,46 +361,52 @@ class App(QMainWindow):
       send_email_with_attachment(textboxValue, self.latest_files)
 
   def on_click_take_picture(self):
-    # Defend against multiple button clicks
-    if self.is_in_progress is False:
-      self.is_in_progress = True
-      photo_taken = take_picture()
-      self.latest_files = [photo_taken]
-      self.display_photo(f'{photo_taken}')
-      self.is_in_progress = False
+    # Disable action buttons
+    self.enable_disable_action_buttons(False)
+    photo_taken = take_picture()
+    self.latest_files = [photo_taken]
+    self.display_photo(f'{photo_taken}')
+    # Re-enable action buttons
+    self.enable_disable_action_buttons(True)
 
   def on_click_take_pictures(self):
-    # Defend against multiple button clicks
-    if self.is_in_progress is False:
-      self.is_in_progress = True
-      photos_taken = [
-          take_picture()
-          for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
-      ]
-      self.latest_files = photos_taken
-      # TODO Display all photos_taken
-      self.display_photo(f'{photos_taken[0]}')
-      self.is_in_progress = False
+    # Disable action buttons
+    self.enable_disable_action_buttons(False)
+    photos_taken = [
+        take_picture()
+        for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
+    ]
+    self.latest_files = photos_taken
+    # TODO Display all photos_taken
+    self.display_photo(f'{photos_taken[0]}')
+    # Re-enable action buttons
+    self.enable_disable_action_buttons(True)
 
   def on_click_record_gif(self):
-    # Defend against multiple button clicks
-    if self.is_in_progress is False:
-      self.is_in_progress = True
-      self.latest_files = [
-          take_picture()
-          for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
-      ]
-      self.latest_files = [create_gif(self.latest_files)]
-      self.display_gif(f'{self.latest_files[0]}')
-      self.is_in_progress = False
+    # Disable action buttons
+    self.enable_disable_action_buttons(False)
+    self.latest_files = [
+        take_picture()
+        for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
+    ]
+    self.latest_files = [create_gif(self.latest_files)]
+    self.display_gif(f'{self.latest_files[0]}')
+    # Re-enable action buttons
+    self.enable_disable_action_buttons(True)
 
   def on_click_record_video(self):
-    # Defend against multiple button clicks
-    if self.is_in_progress is False:
-      self.is_in_progress = True
-      self.latest_files = [record_video()]
-      self.display_latest_file()
-      self.is_in_progress = False
+    # Disable action buttons
+    self.enable_disable_action_buttons(False)
+    self.latest_files = [record_video()]
+    self.display_latest_file()
+    # Re-enable action buttons
+    self.enable_disable_action_buttons(True)
+
+  def enable_disable_action_buttons(self, is_enabled):
+    self.take_picture_button.setEnabled(is_enabled)
+    self.take_pictures_button.setEnabled(is_enabled)
+    self.record_gif_button.setEnabled(is_enabled)
+    self.record_video_button.setEnabled(is_enabled)
 
   def on_click_delete_latest(self):
     delete_files(self.latest_files)
@@ -420,6 +428,9 @@ class App(QMainWindow):
     self.textbox.setText(f"{self.textbox.text()}{string}")
     self.clear_email_button.setEnabled(True)
     self.backspace_button.setEnabled(True)
+
+  def on_click_generate_pdf(self):
+    generate_pdf(self.textbox.text())
 
   def display_latest_file(self):
     if len(self.latest_files) > 0:
