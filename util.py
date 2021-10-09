@@ -213,7 +213,10 @@ def get_latest_file() -> list:
   """
   Find the most recent file in the files directory, exclude pdfs
   """
-  photos = sorted(glob.glob(f"{FILES_DIR}/*[!.pdf]"))
+  photos = sorted([
+      filename for filename in glob.glob(f'{FILES_DIR}/*.*')
+      if not filename.endswith('.pdf')
+  ])
   if len(photos) == 0:
     return []
   return [photos[-1]]
