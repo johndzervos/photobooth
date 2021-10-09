@@ -3,12 +3,13 @@ import os
 import sys
 
 from PyQt5.QtGui import QIcon, QMovie, QPixmap
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
     QLineEdit,
     QMainWindow,
-    QPushButton
+    QPushButton,
 )
 
 from util import (
@@ -46,7 +47,7 @@ class App(QMainWindow):
     self.latest_files = []
     self.left = 10
     self.top = 10
-    self.width = 1000
+    self.width = 1010
     self.height = 700
     self.initUI()
 
@@ -95,12 +96,13 @@ class App(QMainWindow):
     self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.delete_button.setIcon(QIcon('assets/trash.svg'))
     self.delete_button.move(600, 600)
-    # TODO: Disable button if there isn't any photo to display
+    # TODO: Disable button if there isn't any photo to delete
 
     self.undo_button = QPushButton('', self)
     self.undo_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.undo_button.setIcon(QIcon('assets/undo.svg'))
     self.undo_button.move(700, 600)
+    # TODO: Disable button if there isn't any photo to restore
 
     self.clear_email_button = QPushButton('', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
@@ -288,8 +290,17 @@ class App(QMainWindow):
     self.hotmail_button = QPushButton('@hotmail.com', self)
     self.hotmail_button.move(220, FOURTH_LINE_HEIGHT)
 
-    # Create photo display
+    # Create photo displays
     self.photo_display = QLabel(self)
+    self.photo_display1 = QLabel(self)
+    self.photo_display2 = QLabel(self)
+    self.photo_display3 = QLabel(self)
+
+    self.photo_display.move(360, 20)
+    self.photo_display1.move(680, 20)
+    self.photo_display2.move(360, 260)
+    self.photo_display3.move(680, 260)
+
     self.latest_files = get_latest_file(FILES_DIR, False)
     self.display_latest_file()
 
@@ -384,8 +395,7 @@ class App(QMainWindow):
         for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
     ]
     self.latest_files = photos_taken
-    # TODO Display all photos_taken
-    self.display_photo(f'{photos_taken[0]}')
+    self.display_photos(photos_taken)
     # Re-enable action buttons
     self.enable_action_buttons()
 
@@ -479,20 +489,49 @@ class App(QMainWindow):
         print(f"unknown format: {extension}")
     else:
       self.photo_display.clear()
+      self.photo_display1.clear()
+      self.photo_display2.clear()
+      self.photo_display3.clear()
 
   def display_photo(self, filename):
     pixmap = QPixmap(filename)
     self.photo_display.setPixmap(pixmap)
-    self.photo_display.move(360, 20)
-    self.photo_display.resize(pixmap.width() - 10, pixmap.height())
+    self.photo_display.resize(pixmap.width(), pixmap.height())
+    self.photo_display1.clear()
+    self.photo_display2.clear()
+    self.photo_display3.clear()
+
+  def create_scaled_pixmap(self, filename):
+    return QPixmap(filename).scaled(
+        320,
+        240,
+        Qt.KeepAspectRatio,
+        Qt.SmoothTransformation
+    )
+
+  def display_photos(self, filenames):
+    self.photo_display.resize(320, 240)
+    self.photo_display1.resize(320, 240)
+    self.photo_display2.resize(320, 240)
+    self.photo_display3.resize(320, 240)
+    pixmap0 = self.create_scaled_pixmap(filenames[0])
+    pixmap1 = self.create_scaled_pixmap(filenames[1])
+    pixmap2 = self.create_scaled_pixmap(filenames[2])
+    pixmap3 = self.create_scaled_pixmap(filenames[3])
+    self.photo_display.setPixmap(pixmap0)
+    self.photo_display1.setPixmap(pixmap1)
+    self.photo_display2.setPixmap(pixmap2)
+    self.photo_display3.setPixmap(pixmap3)
 
   def display_gif(self, filename):
     pixmap = QPixmap(filename)
-    self.photo_display.move(360, 20)
     self.photo_display.resize(pixmap.width() - 10, pixmap.height())
     self.movie = QMovie(filename)
     self.photo_display.setMovie(self.movie)
     self.movie.start()
+    self.photo_display1.clear()
+    self.photo_display2.clear()
+    self.photo_display3.clear()
 
   def display_video(self, filename):
     print(filename)
