@@ -209,30 +209,30 @@ def create_gif(photos_list: list):
   return saved_gif
 
 
-def get_latest_file() -> list:
+def get_latest_file(directory: str, reverse: bool) -> list:
   """
-  Find the most recent file in the files directory, exclude pdfs
+  Find the most recent file in the provided directory, exclude pdfs
   """
   photos = sorted([
-      filename for filename in glob.glob(f'{FILES_DIR}/*.*')
+      filename for filename in glob.glob(f'{directory}/*.*')
       if not filename.endswith('.pdf')
-  ])
+  ], reverse=reverse)
   if len(photos) == 0:
     return []
   return [photos[-1]]
 
 
-def delete_files(filenames: list):
+def move_files(filenames: list, source_dir: str, dest_dir: str):
   """
-  Move the 'deleted' file to the deleted directory
+  Move the files from the source directory to the destination directory
   """
   try:
-    os.makedirs(DELETED_DIR)
+    os.makedirs(dest_dir)
   except FileExistsError:
     # directory already exists
     pass
   for file in filenames:
-    shutil.move(file, file.replace(f"{FILES_DIR}", f"{DELETED_DIR}"))
+    shutil.move(file, file.replace(source_dir, dest_dir))
 
 
 def generate_pdf(email):

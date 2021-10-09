@@ -12,10 +12,11 @@ from PyQt5.QtWidgets import (
 )
 
 from util import (
+    DELETED_DIR,
     FILES_DIR,
     create_gif,
-    delete_files,
     get_latest_file,
+    move_files,
     record_video,
     send_email_with_attachment,
     take_picture,
@@ -96,6 +97,11 @@ class App(QMainWindow):
     self.delete_button.move(600, 600)
     # TODO: Disable button if there isn't any photo to display
 
+    self.undo_button = QPushButton('', self)
+    self.undo_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.undo_button.setIcon(QIcon('assets/undo.svg'))
+    self.undo_button.move(700, 600)
+
     self.clear_email_button = QPushButton('', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.clear_email_button.setIcon(QIcon('assets/eraser.svg'))
@@ -109,7 +115,7 @@ class App(QMainWindow):
     # TODO: Remove pdf button
     self.pdf_button = QPushButton('PDF', self)
     self.pdf_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.pdf_button.move(700, 600)
+    self.pdf_button.move(800, 600)
 
     # NUMBERS
 
@@ -284,7 +290,7 @@ class App(QMainWindow):
 
     # Create photo display
     self.photo_display = QLabel(self)
-    self.latest_files = get_latest_file()
+    self.latest_files = get_latest_file(FILES_DIR, False)
     self.display_latest_file()
 
     # Connect buttons to functions
@@ -299,6 +305,7 @@ class App(QMainWindow):
     self.record_gif_button.clicked.connect(self.on_click_record_gif)
     self.record_video_button.clicked.connect(self.on_click_record_video)
     self.delete_button.clicked.connect(self.on_click_delete_latest)
+    self.undo_button.clicked.connect(self.on_click_undo)
 
     self.button_1.clicked.connect(lambda: self.on_click_add_to_email('1'))
     self.button_2.clicked.connect(lambda: self.on_click_add_to_email('2'))
@@ -362,16 +369,16 @@ class App(QMainWindow):
 
   def on_click_take_picture(self):
     # Disable action buttons
-    self.enable_disable_action_buttons(False)
+    self.disable_action_buttons()
     photo_taken = take_picture()
     self.latest_files = [photo_taken]
     self.display_photo(f'{photo_taken}')
     # Re-enable action buttons
-    self.enable_disable_action_buttons(True)
+    self.enable_action_buttons()
 
   def on_click_take_pictures(self):
     # Disable action buttons
-    self.enable_disable_action_buttons(False)
+    self.disable_action_buttons()
     photos_taken = [
         take_picture()
         for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
@@ -380,11 +387,11 @@ class App(QMainWindow):
     # TODO Display all photos_taken
     self.display_photo(f'{photos_taken[0]}')
     # Re-enable action buttons
-    self.enable_disable_action_buttons(True)
+    self.enable_action_buttons()
 
   def on_click_record_gif(self):
     # Disable action buttons
-    self.enable_disable_action_buttons(False)
+    self.disable_action_buttons()
     self.latest_files = [
         take_picture()
         for _ in range(N_NUMBER_MULTIPLE_PHOTOS)
@@ -392,26 +399,53 @@ class App(QMainWindow):
     self.latest_files = [create_gif(self.latest_files)]
     self.display_gif(f'{self.latest_files[0]}')
     # Re-enable action buttons
-    self.enable_disable_action_buttons(True)
+    self.enable_action_buttons()
 
   def on_click_record_video(self):
     # Disable action buttons
-    self.enable_disable_action_buttons(False)
+    self.disable_action_buttons()
     self.latest_files = [record_video()]
     self.display_latest_file()
     # Re-enable action buttons
-    self.enable_disable_action_buttons(True)
+    self.enable_action_buttons()
 
-  def enable_disable_action_buttons(self, is_enabled):
-    self.take_picture_button.setEnabled(is_enabled)
-    self.take_pictures_button.setEnabled(is_enabled)
-    self.record_gif_button.setEnabled(is_enabled)
-    self.record_video_button.setEnabled(is_enabled)
+  def enable_action_buttons(self):
+    self.take_picture_button.setEnabled(True)
+    self.take_pictures_button.setEnabled(True)
+    self.record_gif_button.setEnabled(True)
+    self.record_video_button.setEnabled(True)
+    self.delete_button.setEnabled(True)
+    self.undo_button.setEnabled(True)
+
+  def disable_action_buttons(self):
+    self.take_picture_button.setEnabled(False)
+    self.take_pictures_button.setEnabled(False)
+    self.record_gif_button.setEnabled(False)
+    self.record_video_button.setEnabled(False)
+    self.delete_button.setEnabled(False)
+    self.undo_button.setEnabled(False)
 
   def on_click_delete_latest(self):
-    delete_files(self.latest_files)
-    self.latest_files = get_latest_file()
+    # Disable action buttons
+    self.disable_action_buttons()
+    move_files(self.latest_files, FILES_DIR, DELETED_DIR)
+    self.latest_files = get_latest_file(FILES_DIR, False)
     self.display_latest_file()
+    # Re-enable action buttons
+    self.enable_action_buttons()
+
+  def on_click_undo(self):
+    # Disable action buttons
+    self.disable_action_buttons()
+    restored_file = get_latest_file(DELETED_DIR, True)
+    if len(restored_file) > 0:
+      self.latest_files = restored_file
+      move_files(self.latest_files, DELETED_DIR, FILES_DIR)
+      self.latest_files[0] = self.latest_files[0]\
+                                 .replace(DELETED_DIR, FILES_DIR)
+      self.display_latest_file()
+    # Re-enable action buttons
+    self.enable_action_buttons()
 
   def on_click_clear_email(self):
     self.textbox.setText('')
