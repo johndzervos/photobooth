@@ -22,6 +22,7 @@ from util import (
     send_email_with_attachment,
     take_picture,
     generate_pdf,
+    validate_email,
 )
 
 LETTER_BUTTON_WIDTH = 30
@@ -70,7 +71,6 @@ class App(QMainWindow):
     self.send_email_button = QPushButton('', self)
     self.send_email_button.setIcon(QIcon('assets/email.svg'))
     self.send_email_button.move(10, 60)
-    # TODO: Disable button if it is not a valid email.
 
     self.take_picture_button = QPushButton('', self)
     self.take_picture_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
@@ -461,17 +461,20 @@ class App(QMainWindow):
     self.textbox.setText('')
     self.clear_email_button.setEnabled(False)
     self.backspace_button.setEnabled(False)
+    self.send_email_button.setEnabled(False)
 
   def on_click_backspace(self):
     self.textbox.setText(f"{self.textbox.text()[:-1]}")
     if len(self.textbox.text()) == 0:
       self.clear_email_button.setEnabled(False)
       self.backspace_button.setEnabled(False)
+    self.send_email_button.setEnabled(validate_email(self.textbox.text()))
 
   def on_click_add_to_email(self, string):
     self.textbox.setText(f"{self.textbox.text()}{string}")
     self.clear_email_button.setEnabled(True)
     self.backspace_button.setEnabled(True)
+    self.send_email_button.setEnabled(validate_email(self.textbox.text()))
 
   def on_click_generate_pdf(self):
     generate_pdf(self.textbox.text())
@@ -509,19 +512,20 @@ class App(QMainWindow):
         Qt.SmoothTransformation
     )
 
-  def display_photos(self, filenames):
-    self.photo_display.resize(320, 240)
-    self.photo_display1.resize(320, 240)
-    self.photo_display2.resize(320, 240)
-    self.photo_display3.resize(320, 240)
-    pixmap0 = self.create_scaled_pixmap(filenames[0])
-    pixmap1 = self.create_scaled_pixmap(filenames[1])
-    pixmap2 = self.create_scaled_pixmap(filenames[2])
-    pixmap3 = self.create_scaled_pixmap(filenames[3])
-    self.photo_display.setPixmap(pixmap0)
-    self.photo_display1.setPixmap(pixmap1)
-    self.photo_display2.setPixmap(pixmap2)
-    self.photo_display3.setPixmap(pixmap3)
+  def display_photos(self, filenames: list):
+    """
+    filenames is expected to have a maximum length of 4
+    """
+    displays = [
+      self.photo_display,
+      self.photo_display1,
+      self.photo_display2,
+      self.photo_display3,
+    ]
+    for display, filename in zip(displays, filenames):
+      display.resize(320, 240)
+      pixmap = self.create_scaled_pixmap(filename)
+      display.setPixmap(pixmap)
 
   def display_gif(self, filename):
     pixmap = QPixmap(filename)
