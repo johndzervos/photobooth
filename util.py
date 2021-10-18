@@ -11,7 +11,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 
 import cv2
 import yaml
@@ -24,6 +24,7 @@ FILES_DIR = 'files'
 DELETED_DIR = 'deleted'
 PDF_DIR = 'assets/pdf/'
 PDF_TEMPLATE = 'template.html'
+CSS_FILE = 'pdf_styling.css'
 
 # Load settings
 with open("settings.yaml", 'r') as stream:
@@ -245,6 +246,7 @@ def generate_pdf(email):
 
   env = Environment(loader=FileSystemLoader('.'))
   # TODO: Improve the styling of the template
+  this_folder = os.path.dirname(os.path.abspath(__file__))
   template = env.get_template(f"{PDF_DIR}{PDF_TEMPLATE}")
   template_vars = {
       'event': settings['EVENT_NAME'],
@@ -254,7 +256,11 @@ def generate_pdf(email):
       'receiver_name': email.split('@')[0],
       'body': settings['PDF_MESSAGE'],
       'signature': settings['PDF_SIGNATURE'],
+      'top_image_path': f'file://{this_folder}/assets/pdf/top.png',
+      'bottom_image_path': f'file://{this_folder}/assets/pdf/bottom.png',
+      'main_image_path': f'file://{this_folder}/assets/pdf/main.jpg',
   }
   html_out = template.render(template_vars)
-  HTML(string=html_out).write_pdf(saved_pdf)
+  css = CSS(f"{PDF_DIR}{CSS_FILE}")
+  HTML(string=html_out).write_pdf(saved_pdf, stylesheets=[css])
   return saved_pdf

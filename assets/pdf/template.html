@@ -5,20 +5,34 @@
     <title>{{ event }}</title>
   </head>
   <body>
-    <p>
-      {{ place }}, {{ date }},
-    </p>
-    <p>
-      <a href={{ url }} target="_blank">{{ event }}</a>,
-    </p>
+    <img src="{{ top_image_path }}" class="img img-top" alt="img-top"/>
+    <img src="{{ bottom_image_path }}" class="img img-bottom" alt="img-bottom"/>
+    <img src="{{ main_image_path }}" class="img img-main" alt="img-main"/>
+
+    <div class="event-place">
+      {{ place }}
+    </div>
+    <div class="event-date">
+      {{ date }}
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <span class="event-link">
+      <a href="{{ url }}" target="_blank">{{ event }}</a>,
+    </span>
     <p>
       Dear {{ receiver_name }},
     </p>
     <p>
       {{ body }}
     </p>
-    <p>
+    <div class="signature">
       {{ signature }}
-    </p>
+    </div>
   </body>
 </html>

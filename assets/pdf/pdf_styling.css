@@ -1,0 +1,50 @@
+p {
+  text-align: center;
+  margin: 2rem;
+  color: red;
+}
+
+.img {
+  position: absolute;
+  opacity: 0.5;
+}
+
+.img-top {
+  top: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.img-bottom {
+  bottom: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.img-main {
+  top: 50%;
+  left: 25%;
+  margin-left: auto;
+  width: 50%;
+}
+
+.event-place {
+  float: right;
+  margin: 2rem;
+}
+
+.event-date {
+  float: left;
+  margin: 2rem;
+}
+
+.event-link {
+  margin: auto;
+  position: absolute;
+  bottom: 4rem;
+}
+
+.signature {
+  margin: 2rem;
+  text-align: left;
+}
