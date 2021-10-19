@@ -1,12 +1,11 @@
 p {
   text-align: center;
   margin: 2rem;
-  color: red;
 }
 
 .img {
   position: absolute;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .img-top {
@@ -30,18 +29,18 @@ p {
 
 .event-place {
   float: right;
-  margin: 2rem;
+  margin: 5rem 3rem;
 }
 
 .event-date {
   float: left;
-  margin: 2rem;
+  margin: 5rem 3rem;
 }
 
 .event-link {
   margin: auto;
   position: absolute;
-  bottom: 4rem;
+  bottom: 6rem;
 }
 
 .signature {

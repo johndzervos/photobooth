@@ -256,9 +256,9 @@ def generate_pdf(email):
       'receiver_name': email.split('@')[0],
       'body': settings['PDF_MESSAGE'],
       'signature': settings['PDF_SIGNATURE'],
-      'top_image_path': f'file://{this_folder}/assets/pdf/top.png',
-      'bottom_image_path': f'file://{this_folder}/assets/pdf/bottom.png',
-      'main_image_path': f'file://{this_folder}/assets/pdf/main.jpg',
+      'top_image_path': f'file://{this_folder}/assets/pdf/{settings["PDF_TOP_IMG"]}',
+      'bottom_image_path': f'file://{this_folder}/assets/pdf/{settings["PDF_BOTTOM_IMG"]}',
+      'main_image_path': f'file://{this_folder}/assets/pdf/{settings["PDF_MAIN_IMG"]}',
   }
   html_out = template.render(template_vars)
   css = CSS(f"{PDF_DIR}{CSS_FILE}")

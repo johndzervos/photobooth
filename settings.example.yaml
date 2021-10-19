@@ -9,3 +9,6 @@ settings:
   EVENT_WEBSITE: 'Event website'
   PDF_MESSAGE: 'Message to be included in the generated pdf'
   PDF_SIGNATURE: 'With love! X and Y'
+  PDF_TOP_IMG: 'top.png'
+  PDF_BOTTOM_IMG: 'bottom.png'
+  PDF_MAIN_IMG: 'main.png'
