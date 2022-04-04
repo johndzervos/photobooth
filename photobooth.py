@@ -1,7 +1,7 @@
 import os
 import sys
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QIcon, QMovie, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
@@ -27,7 +27,6 @@ from util import (
     generate_pdf,
     get_latest_file,
     move_files,
-    record_video,
     send_email_with_attachment,
     take_picture,
     validate_email
@@ -80,11 +79,6 @@ class App(QMainWindow):
     self.record_gif_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.record_gif_button.setIcon(QIcon('assets/gif.png'))
     self.record_gif_button.move(150, ICON_BUTTON_LINE_OFFSET)
-
-    self.record_video_button = QPushButton('', self)
-    self.record_video_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.record_video_button.setIcon(QIcon('assets/video.svg'))
-    self.record_video_button.move(220, ICON_BUTTON_LINE_OFFSET)
 
     self.delete_button = QPushButton('', self)
     self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
@@ -146,7 +140,6 @@ class App(QMainWindow):
     self.take_picture_button.clicked.connect(self.on_click_take_picture)
     self.take_pictures_button.clicked.connect(self.on_click_take_pictures)
     self.record_gif_button.clicked.connect(self.on_click_record_gif)
-    self.record_video_button.clicked.connect(self.on_click_record_video)
     self.delete_button.clicked.connect(self.on_click_delete_latest)
     self.undo_button.clicked.connect(self.on_click_undo)
 
@@ -191,19 +184,10 @@ class App(QMainWindow):
     # Re-enable action buttons
     self.enable_action_buttons()
 
-  def on_click_record_video(self):
-    # Disable action buttons
-    self.disable_action_buttons()
-    self.latest_files = [record_video()]
-    self.display_latest_file()
-    # Re-enable action buttons
-    self.enable_action_buttons()
-
   def enable_action_buttons(self):
     self.take_picture_button.setEnabled(True)
     self.take_pictures_button.setEnabled(True)
     self.record_gif_button.setEnabled(True)
-    self.record_video_button.setEnabled(True)
     self.delete_button.setEnabled(True)
     self.undo_button.setEnabled(True)
 
@@ -211,7 +195,6 @@ class App(QMainWindow):
     self.take_picture_button.setEnabled(False)
     self.take_pictures_button.setEnabled(False)
     self.record_gif_button.setEnabled(False)
-    self.record_video_button.setEnabled(False)
     self.delete_button.setEnabled(False)
     self.undo_button.setEnabled(False)
 
@@ -266,8 +249,6 @@ class App(QMainWindow):
         self.display_photo(f'{self.latest_files[0]}')
       elif extension == '.gif':
         self.display_gif(f'{self.latest_files[0]}')
-      elif extension == '.avi':
-        self.display_video(f'{self.latest_files[0]}')
       else:
         print(f"unknown format: {extension}")
     else:
@@ -316,11 +297,6 @@ class App(QMainWindow):
     self.photo_display1.clear()
     self.photo_display2.clear()
     self.photo_display3.clear()
-
-  def display_video(self, filename):
-    print(filename)
-    # TODO Add support for video player
-
 
 if __name__ == '__main__':
   app = QApplication(sys.argv)

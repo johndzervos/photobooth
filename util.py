@@ -89,7 +89,7 @@ def send_email_with_attachment(receiver_email: str, filenames_list: list):
     server.sendmail(sender_email, receiver_email, text)
 
 
-def take_picture():
+def take_picture() -> str:
   """
   Opens the camera, displays a countdown and after COUNTDOWN_TIMER seconds,
   the frame is saved in the files directory.
@@ -153,49 +153,7 @@ def take_picture():
   return saved_photo
 
 
-def record_video():
-  """
-  Use the camera to record a video
-  """
-  filename = get_filename()
-  saved_video = f"{FILES_DIR}/{filename}.avi"
-
-  cap = cv2.VideoCapture(0)
-
-  cv2.namedWindow(PHOTOBOOTH_WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
-  cv2.setWindowProperty(
-      PHOTOBOOTH_WINDOW_NAME,
-      cv2.WND_PROP_FULLSCREEN,
-      cv2.WINDOW_FULLSCREEN
-  )
-
-  width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-  height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-  writer = cv2.VideoWriter(
-      saved_video,
-      cv2.VideoWriter_fourcc(*'DIVX'),
-      20,
-      (width, height)
-  )
-
-  start_time = time.time()
-  while(int(time.time() - start_time) < RECORDING_TIME):
-    _, frame = cap.read()
-    # Mirror image
-    frame = cv2.flip(frame, 1)
-    writer.write(frame)
-    cv2.imshow(PHOTOBOOTH_WINDOW_NAME, frame)
-    cv2.waitKey(1)
-
-  cap.release()
-  writer.release()
-  # close all the opened windows
-  cv2.destroyAllWindows()
-  return saved_video
-
-
-def create_gif(photos_list: list):
+def create_gif(photos_list: list) -> str:
   filename = get_filename()
   saved_gif = f'{FILES_DIR}/{filename}.gif'
   img, *imgs = [Image.open(f) for f in photos_list]
@@ -236,7 +194,7 @@ def move_files(filenames: list, source_dir: str, dest_dir: str):
     shutil.move(file, file.replace(source_dir, dest_dir))
 
 
-def generate_pdf(email):
+def generate_pdf(email: str):
   """
   Generate pdf to be included as an attachment to the email.
   The template is used, placed in pdf dir
