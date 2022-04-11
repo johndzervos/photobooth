@@ -108,6 +108,7 @@ class EmailWindow(QWidget):
     textboxValue = self.textbox.text()
     # Defend against empty email
     if len(textboxValue) > 0:
+      self.send_email_button.setEnabled(False)
       send_email_with_attachment(textboxValue, self.latest_files)
       self.close()
 
