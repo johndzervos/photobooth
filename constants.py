@@ -76,4 +76,5 @@ KEYBOARD_LAYOUT = [
     ('@gmail.com', None, None, 10, SIXTH_ROW_OFFSET),
     ('@yahoo.com', None, None, 115, SIXTH_ROW_OFFSET),
     ('@hotmail.com', None, None, 220, SIXTH_ROW_OFFSET),
+    ('.com', None, None, 335, SIXTH_ROW_OFFSET),
 ]

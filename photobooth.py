@@ -22,7 +22,11 @@ from constants import (
     KEYBOARD_LAYOUT,
     LETTER_BUTTON_HEIGHT,
     LETTER_BUTTON_WIDTH,
-    N_NUMBER_MULTIPLE_PHOTOS
+    N_NUMBER_MULTIPLE_PHOTOS,
+    FIRST_ROW_OFFSET,
+    FIFTH_ROW_OFFSET,
+    SIXTH_ROW_OFFSET,
+    ELEVENTH_COL_OFFSET,
 )
 from util import (
     DELETED_DIR,
@@ -58,23 +62,27 @@ class EmailWindow(QWidget):
     self.setWindowTitle('Send email')
     # Create textbox
     self.textbox = QLineEdit(self)
+    font = self.textbox.font()
+    font.setPointSize(30)
+    self.textbox.setFont(font)
     self.textbox.move(10, 20)
-    self.textbox.resize(275, 30)
+    self.textbox.resize(690, 60)
     self.textbox.setText(DEFAULT_EMAIL)
 
     self.clear_email_button = QPushButton('', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.clear_email_button.setIcon(QIcon('assets/eraser.svg'))
-    self.clear_email_button.move(290, 20)
+    self.clear_email_button.move(ELEVENTH_COL_OFFSET, 20)
 
     self.backspace_button = QPushButton('', self)
     self.backspace_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.backspace_button.setIcon(QIcon('assets/arrow-left.svg'))
-    self.backspace_button.move(710, 110)
+    self.backspace_button.move(ELEVENTH_COL_OFFSET, FIRST_ROW_OFFSET)
 
     self.send_email_button = QPushButton('', self)
+    self.send_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.send_email_button.setIcon(QIcon('assets/email.svg'))
-    self.send_email_button.move(10, 60)
+    self.send_email_button.move(ELEVENTH_COL_OFFSET, FIFTH_ROW_OFFSET)
 
     # Connect buttons to functions
     self.send_email_button.clicked.connect(self.on_click_send_email)
@@ -89,6 +97,12 @@ class EmailWindow(QWidget):
       self.q_button.clicked.connect(
           lambda checked, text=button[0]: self.on_click_add_to_email(text)
       )
+
+    # TODO: Remove pdf button
+    self.pdf_button = QPushButton('PDF', self)
+    self.pdf_button.resize(30, 30)
+    self.pdf_button.move(500, SIXTH_ROW_OFFSET)
+    self.pdf_button.clicked.connect(self.on_click_generate_pdf)
 
   def on_click_send_email(self):
     textboxValue = self.textbox.text()
@@ -115,6 +129,10 @@ class EmailWindow(QWidget):
     self.clear_email_button.setEnabled(True)
     self.backspace_button.setEnabled(True)
     self.send_email_button.setEnabled(validate_email(self.textbox.text()))
+
+  # TODO: Remove pdf button
+  def on_click_generate_pdf(self):
+    generate_pdf(self.textbox.text())
 
 
 class MainWindow(QMainWindow):
@@ -165,39 +183,34 @@ class MainWindow(QMainWindow):
     self.open_email_modal_button = QPushButton('', self)
     self.open_email_modal_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.open_email_modal_button.setIcon(QIcon('assets/email.svg'))
-    self.open_email_modal_button.move(15, 225)
+    self.open_email_modal_button.move(15, 255)
 
     self.open_email_modal_label = QLabel(self)
     self.open_email_modal_label.setText("Send email")
     self.open_email_modal_label.adjustSize()
-    self.open_email_modal_label.move(90, 245)
+    self.open_email_modal_label.move(90, 275)
 
     self.delete_button = QPushButton('', self)
     self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.delete_button.setIcon(QIcon('assets/trash.svg'))
-    self.delete_button.move(15, 295)
+    self.delete_button.move(15, 355)
     # TODO: Disable button if there isn't any photo to delete
 
     self.delete_label = QLabel(self)
     self.delete_label.setText("Delete")
     self.delete_label.adjustSize()
-    self.delete_label.move(90, 315)
+    self.delete_label.move(90, 375)
 
     self.undo_button = QPushButton('', self)
     self.undo_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
     self.undo_button.setIcon(QIcon('assets/undo.svg'))
-    self.undo_button.move(15, 365)
+    self.undo_button.move(15, 425)
     # TODO: Disable button if there isn't any photo to restore
 
     self.restore_label = QLabel(self)
     self.restore_label.setText("Restore")
     self.restore_label.adjustSize()
-    self.restore_label.move(90, 385)
-
-    # TODO: Remove pdf button
-    self.pdf_button = QPushButton('PDF', self)
-    self.pdf_button.resize(30, 30)
-    self.pdf_button.move(15, 435)
+    self.restore_label.move(90, 445)
 
     # Create photo displays
     self.photo_display = QLabel(self)
@@ -205,18 +218,16 @@ class MainWindow(QMainWindow):
     self.photo_display2 = QLabel(self)
     self.photo_display3 = QLabel(self)
 
-    self.photo_display.move(360, 20)
-    self.photo_display1.move(680, 20)
-    self.photo_display2.move(360, 260)
-    self.photo_display3.move(680, 260)
+    self.photo_display.move(360, 10)
+    self.photo_display1.move(680, 10)
+    self.photo_display2.move(360, 250)
+    self.photo_display3.move(680, 250)
 
     self.latest_files = get_latest_file(FILES_DIR, False)
     self.display_latest_file()
 
     # Connect buttons to functions
     self.open_email_modal_button.clicked.connect(self.open_email_modal)
-
-    self.pdf_button.clicked.connect(self.on_click_generate_pdf)
 
     self.take_picture_button.clicked.connect(self.on_click_take_picture)
     self.take_pictures_button.clicked.connect(self.on_click_take_pictures)
@@ -294,9 +305,6 @@ class MainWindow(QMainWindow):
       self.display_latest_file()
     # Re-enable action buttons
     self.enable_action_buttons()
-
-  def on_click_generate_pdf(self):
-    generate_pdf(self.textbox.text())
 
   def display_latest_file(self):
     if len(self.latest_files) > 0:

@@ -45,6 +45,7 @@ def send_email_with_attachment(receiver_email: str, filenames_list: list):
   Sends an email to the provided receiver email,
   with the provided files attached
   """
+  print("Trying to send email...")
   sender_email = settings['SENDER_EMAIL']
 
   # Create pdf and include it in the attachments
