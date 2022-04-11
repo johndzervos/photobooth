@@ -87,6 +87,7 @@ def send_email_with_attachment(receiver_email: str, filenames_list: list):
     server.starttls(context=context)
     server.login(sender_email, settings['SENDER_PASSWORD'])
     server.sendmail(sender_email, receiver_email, text)
+  print("Email sent!")
 
 
 def take_picture() -> str:

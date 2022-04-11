@@ -3,19 +3,21 @@
 import os
 import sys
 
+from PyQt5 import QtCore
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QIcon, QMovie, QPixmap
+from PyQt5.QtGui import QIcon, QMovie, QPixmap, QFont
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
     QLineEdit,
     QMainWindow,
-    QPushButton
+    QPushButton,
+    QWidget,
 )
 
 from constants import (
     ICON_BUTTON_HEIGHT,
-    ICON_BUTTON_LINE_OFFSET,
+    ICON_BUTTON_ROW_OFFSET,
     ICON_BUTTON_WIDTH,
     KEYBOARD_LAYOUT,
     LETTER_BUTTON_HEIGHT,
@@ -35,64 +37,30 @@ from util import (
 )
 
 
-class App(QMainWindow):
+DEFAULT_EMAIL = "cerigo3@gmail.com"
+WINDOW_X_OFFSET = 10
+WINDOW_Y_OFFSET = 10
+WINDOW_WIDTH = 1010
+WINDOW_HEIGHT = 500
 
-  def __init__(self):
-    super().__init__()
-    self.title = 'Photobooth App'
-    self.latest_files = []
-    self.left = 10
-    self.top = 10
-    self.width = 1010
-    self.height = 700
+class EmailWindow(QWidget):
+
+  def __init__(self, latest_files):
+    QWidget.__init__(self)
+    self.setWindowTitle('Send email')
+    self.latest_files = latest_files
+    super(EmailWindow, self).__init__()
+
     self.initUI()
-
+  
   def initUI(self):
-    try:
-      os.makedirs(FILES_DIR)
-    except FileExistsError:
-      # directory already exists
-      pass
-
-    self.setWindowTitle(self.title)
-    self.setGeometry(self.left, self.top, self.width, self.height)
-
+    self.setGeometry(WINDOW_X_OFFSET, WINDOW_Y_OFFSET, WINDOW_WIDTH, WINDOW_HEIGHT)
+    self.setWindowTitle('Send email')
     # Create textbox
     self.textbox = QLineEdit(self)
     self.textbox.move(10, 20)
     self.textbox.resize(275, 30)
-    self.textbox.setText("cerigo3@gmail.com")
-
-    self.send_email_button = QPushButton('', self)
-    self.send_email_button.setIcon(QIcon('assets/email.svg'))
-    self.send_email_button.move(10, 60)
-
-    self.take_picture_button = QPushButton('', self)
-    self.take_picture_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.take_picture_button.setIcon(QIcon('assets/photo.svg'))
-    self.take_picture_button.move(10, ICON_BUTTON_LINE_OFFSET)
-
-    self.take_pictures_button = QPushButton('', self)
-    self.take_pictures_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.take_pictures_button.setIcon(QIcon('assets/photos.svg'))
-    self.take_pictures_button.move(80, ICON_BUTTON_LINE_OFFSET)
-
-    self.record_gif_button = QPushButton('', self)
-    self.record_gif_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.record_gif_button.setIcon(QIcon('assets/gif.png'))
-    self.record_gif_button.move(150, ICON_BUTTON_LINE_OFFSET)
-
-    self.delete_button = QPushButton('', self)
-    self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.delete_button.setIcon(QIcon('assets/trash.svg'))
-    self.delete_button.move(600, 600)
-    # TODO: Disable button if there isn't any photo to delete
-
-    self.undo_button = QPushButton('', self)
-    self.undo_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.undo_button.setIcon(QIcon('assets/undo.svg'))
-    self.undo_button.move(700, 600)
-    # TODO: Disable button if there isn't any photo to restore
+    self.textbox.setText(DEFAULT_EMAIL)
 
     self.clear_email_button = QPushButton('', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
@@ -102,12 +70,16 @@ class App(QMainWindow):
     self.backspace_button = QPushButton('', self)
     self.backspace_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.backspace_button.setIcon(QIcon('assets/arrow-left.svg'))
-    self.backspace_button.move(290, 60)
+    self.backspace_button.move(710, 110)
 
-    # TODO: Remove pdf button
-    self.pdf_button = QPushButton('PDF', self)
-    self.pdf_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
-    self.pdf_button.move(800, 600)
+    self.send_email_button = QPushButton('', self)
+    self.send_email_button.setIcon(QIcon('assets/email.svg'))
+    self.send_email_button.move(10, 60)
+
+    # Connect buttons to functions
+    self.send_email_button.clicked.connect(self.on_click_send_email)
+    self.clear_email_button.clicked.connect(self.on_click_clear_email)
+    self.backspace_button.clicked.connect(self.on_click_backspace)
 
     for button in KEYBOARD_LAYOUT:
       self.q_button = QPushButton(button[0], self)
@@ -117,6 +89,115 @@ class App(QMainWindow):
       self.q_button.clicked.connect(
           lambda checked, text=button[0]: self.on_click_add_to_email(text)
       )
+
+  def on_click_send_email(self):
+    textboxValue = self.textbox.text()
+    # Defend against empty email
+    if len(textboxValue) > 0:
+      send_email_with_attachment(textboxValue, self.latest_files)
+      self.close()
+
+  def on_click_clear_email(self):
+    self.textbox.setText('')
+    self.clear_email_button.setEnabled(False)
+    self.backspace_button.setEnabled(False)
+    self.send_email_button.setEnabled(False)
+
+  def on_click_backspace(self):
+    self.textbox.setText(f"{self.textbox.text()[:-1]}")
+    if len(self.textbox.text()) == 0:
+      self.clear_email_button.setEnabled(False)
+      self.backspace_button.setEnabled(False)
+    self.send_email_button.setEnabled(validate_email(self.textbox.text()))
+
+  def on_click_add_to_email(self, string):
+    self.textbox.setText(f"{self.textbox.text()}{string}")
+    self.clear_email_button.setEnabled(True)
+    self.backspace_button.setEnabled(True)
+    self.send_email_button.setEnabled(validate_email(self.textbox.text()))
+
+
+class MainWindow(QMainWindow):
+  switch_window = QtCore.pyqtSignal(list)
+
+  def open_email_modal(self):
+    self.switch_window.emit(self.latest_files)
+
+  def __init__(self):
+    super().__init__()
+    self.latest_files = []
+    self.initUI()
+
+  def initUI(self):
+    self.setWindowTitle('Photobooth App')
+    self.setGeometry(WINDOW_X_OFFSET, WINDOW_Y_OFFSET, WINDOW_WIDTH, WINDOW_HEIGHT)
+
+    self.take_picture_button = QPushButton('', self)
+    self.take_picture_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.take_picture_button.setIcon(QIcon('assets/photo.svg'))
+    self.take_picture_button.move(15, 15)
+
+    self.take_picture_label = QLabel(self)
+    self.take_picture_label.setText("1 picture")
+    self.take_picture_label.adjustSize()
+    self.take_picture_label.move(90, 35)
+
+    self.take_pictures_button = QPushButton('', self)
+    self.take_pictures_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.take_pictures_button.setIcon(QIcon('assets/photos.svg'))
+    self.take_pictures_button.move(15, 85)
+
+    self.take_pictures_label = QLabel(self)
+    self.take_pictures_label.setText("4 pictures")
+    self.take_pictures_label.adjustSize()
+    self.take_pictures_label.move(90, 105)
+
+    self.record_gif_button = QPushButton('', self)
+    self.record_gif_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.record_gif_button.setIcon(QIcon('assets/gif.png'))
+    self.record_gif_button.move(15, 155)
+
+    self.record_gif_label = QLabel(self)
+    self.record_gif_label.setText("4 pictures -> GIF")
+    self.record_gif_label.adjustSize()
+    self.record_gif_label.move(90, 175)
+
+    self.open_email_modal_button = QPushButton('', self)
+    self.open_email_modal_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.open_email_modal_button.setIcon(QIcon('assets/email.svg'))
+    self.open_email_modal_button.move(15, 225)
+
+    self.open_email_modal_label = QLabel(self)
+    self.open_email_modal_label.setText("Send email")
+    self.open_email_modal_label.adjustSize()
+    self.open_email_modal_label.move(90, 245)
+
+    self.delete_button = QPushButton('', self)
+    self.delete_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.delete_button.setIcon(QIcon('assets/trash.svg'))
+    self.delete_button.move(15, 295)
+    # TODO: Disable button if there isn't any photo to delete
+
+    self.delete_label = QLabel(self)
+    self.delete_label.setText("Delete")
+    self.delete_label.adjustSize()
+    self.delete_label.move(90, 315)
+
+    self.undo_button = QPushButton('', self)
+    self.undo_button.resize(ICON_BUTTON_WIDTH, ICON_BUTTON_HEIGHT)
+    self.undo_button.setIcon(QIcon('assets/undo.svg'))
+    self.undo_button.move(15, 365)
+    # TODO: Disable button if there isn't any photo to restore
+
+    self.restore_label = QLabel(self)
+    self.restore_label.setText("Restore")
+    self.restore_label.adjustSize()
+    self.restore_label.move(90, 385)
+
+    # TODO: Remove pdf button
+    self.pdf_button = QPushButton('PDF', self)
+    self.pdf_button.resize(30, 30)
+    self.pdf_button.move(15, 435)
 
     # Create photo displays
     self.photo_display = QLabel(self)
@@ -133,9 +214,7 @@ class App(QMainWindow):
     self.display_latest_file()
 
     # Connect buttons to functions
-    self.send_email_button.clicked.connect(self.on_click_send_email)
-    self.clear_email_button.clicked.connect(self.on_click_clear_email)
-    self.backspace_button.clicked.connect(self.on_click_backspace)
+    self.open_email_modal_button.clicked.connect(self.open_email_modal)
 
     self.pdf_button.clicked.connect(self.on_click_generate_pdf)
 
@@ -146,12 +225,6 @@ class App(QMainWindow):
     self.undo_button.clicked.connect(self.on_click_undo)
 
     self.show()
-
-  def on_click_send_email(self):
-    textboxValue = self.textbox.text()
-    # Defend against empty email
-    if len(textboxValue) > 0:
-      send_email_with_attachment(textboxValue, self.latest_files)
 
   def on_click_take_picture(self):
     # Disable action buttons
@@ -222,25 +295,6 @@ class App(QMainWindow):
     # Re-enable action buttons
     self.enable_action_buttons()
 
-  def on_click_clear_email(self):
-    self.textbox.setText('')
-    self.clear_email_button.setEnabled(False)
-    self.backspace_button.setEnabled(False)
-    self.send_email_button.setEnabled(False)
-
-  def on_click_backspace(self):
-    self.textbox.setText(f"{self.textbox.text()[:-1]}")
-    if len(self.textbox.text()) == 0:
-      self.clear_email_button.setEnabled(False)
-      self.backspace_button.setEnabled(False)
-    self.send_email_button.setEnabled(validate_email(self.textbox.text()))
-
-  def on_click_add_to_email(self, string):
-    self.textbox.setText(f"{self.textbox.text()}{string}")
-    self.clear_email_button.setEnabled(True)
-    self.backspace_button.setEnabled(True)
-    self.send_email_button.setEnabled(validate_email(self.textbox.text()))
-
   def on_click_generate_pdf(self):
     generate_pdf(self.textbox.text())
 
@@ -300,7 +354,33 @@ class App(QMainWindow):
     self.photo_display2.clear()
     self.photo_display3.clear()
 
-if __name__ == '__main__':
+
+class Controller:
+
+  def __init__(self):
+    pass
+
+  def show_main(self):
+    self.window = MainWindow()
+    self.window.switch_window.connect(self.show_email_window)
+    self.window.show()
+
+  def show_email_window(self, latest_files):
+    self.email_window = EmailWindow(latest_files)
+    self.email_window.show()
+
+
+def main():
+  try:
+    os.makedirs(FILES_DIR)
+  except FileExistsError:
+    # directory already exists
+    pass
+
   app = QApplication(sys.argv)
-  ex = App()
+  controller = Controller()
+  controller.show_main()
   sys.exit(app.exec_())
+
+if __name__ == '__main__':
+  main()
