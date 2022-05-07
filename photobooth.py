@@ -65,7 +65,7 @@ class EmailWindow(QWidget):
     font = self.textbox.font()
     font.setPointSize(30)
     self.textbox.setFont(font)
-    self.textbox.move(10, 20)
+    self.textbox.move(110, 20)
     self.textbox.resize(690, 60)
     self.textbox.setText(DEFAULT_EMAIL)
 
@@ -101,7 +101,7 @@ class EmailWindow(QWidget):
     # TODO: Remove pdf button
     self.pdf_button = QPushButton('PDF', self)
     self.pdf_button.resize(30, 30)
-    self.pdf_button.move(500, SIXTH_ROW_OFFSET)
+    self.pdf_button.move(600, SIXTH_ROW_OFFSET)
     self.pdf_button.clicked.connect(self.on_click_generate_pdf)
 
   def on_click_send_email(self):
