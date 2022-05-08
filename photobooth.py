@@ -56,6 +56,8 @@ class EmailWindow(QWidget):
     super(EmailWindow, self).__init__()
 
     self.initUI()
+    self.showMaximized()
+
   
   def initUI(self):
     self.setGeometry(WINDOW_X_OFFSET, WINDOW_Y_OFFSET, WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -146,6 +148,7 @@ class MainWindow(QMainWindow):
     super().__init__()
     self.latest_files = []
     self.initUI()
+    self.showMaximized()
 
   def initUI(self):
     self.setWindowTitle('Photobooth App')
