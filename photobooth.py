@@ -26,6 +26,7 @@ from constants import (
     FIRST_ROW_OFFSET,
     FIFTH_ROW_OFFSET,
     SIXTH_ROW_OFFSET,
+    TENTH_COL_OFFSET,
     ELEVENTH_COL_OFFSET,
 )
 from util import (
@@ -81,12 +82,18 @@ class EmailWindow(QWidget):
     self.backspace_button.setIcon(QIcon('assets/arrow-left.svg'))
     self.backspace_button.move(ELEVENTH_COL_OFFSET, FIRST_ROW_OFFSET)
 
+    self.return_button = QPushButton('', self)
+    self.return_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
+    self.return_button.setIcon(QIcon('assets/arrow-return.svg'))
+    self.return_button.move(TENTH_COL_OFFSET, FIFTH_ROW_OFFSET)
+
     self.send_email_button = QPushButton('', self)
     self.send_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
     self.send_email_button.setIcon(QIcon('assets/email.svg'))
     self.send_email_button.move(ELEVENTH_COL_OFFSET, FIFTH_ROW_OFFSET)
 
     # Connect buttons to functions
+    self.return_button.clicked.connect(self.on_click_return)
     self.send_email_button.clicked.connect(self.on_click_send_email)
     self.clear_email_button.clicked.connect(self.on_click_clear_email)
     self.backspace_button.clicked.connect(self.on_click_backspace)
@@ -105,6 +112,9 @@ class EmailWindow(QWidget):
     self.pdf_button.resize(30, 30)
     self.pdf_button.move(600, SIXTH_ROW_OFFSET)
     self.pdf_button.clicked.connect(self.on_click_generate_pdf)
+
+  def on_click_return(self):
+    self.close()
 
   def on_click_send_email(self):
     textboxValue = self.textbox.text()
