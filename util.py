@@ -1,3 +1,4 @@
+import asyncio
 import glob
 import os
 import shutil
@@ -26,6 +27,9 @@ PDF_DIR = 'assets/pdf/'
 PDF_TEMPLATE = 'template.html'
 CSS_FILE = 'pdf_styling.css'
 
+EMAILS_FILE = "emails.txt"
+DEFAULT_EMAIL = "cerigo3@gmail.com"
+
 # Load settings
 with open("settings.yaml", 'r') as stream:
   settings = yaml.safe_load(stream)['settings']
@@ -39,7 +43,13 @@ def validate_email(email):
   pattern = re.compile(r"\"?([-a-zA-Z0-9.`?{}]+@\w+\.\w+)\"?")
   return re.match(pattern, email) is not None
 
+def fire_and_forget(f):
+  def wrapped(*args, **kwargs):
+    return asyncio.get_event_loop().run_in_executor(None, f, *args, *kwargs)
 
+  return wrapped
+
+@fire_and_forget
 def send_email_with_attachment(receiver_email: str, filenames_list: list):
   """
   Sends an email to the provided receiver email,
@@ -88,8 +98,13 @@ def send_email_with_attachment(receiver_email: str, filenames_list: list):
     server.starttls(context=context)
     server.login(sender_email, settings['SENDER_PASSWORD'])
     server.sendmail(sender_email, receiver_email, text)
+    save_email_to_file(receiver_email)
   print("Email sent!")
 
+def save_email_to_file(email):
+  file_object = open(EMAILS_FILE, 'a')
+  file_object.write(f"{email}\n")
+  file_object.close()
 
 def take_picture() -> str:
   """
@@ -224,3 +239,10 @@ def generate_pdf(email: str):
   css = CSS(f"{PDF_DIR}{CSS_FILE}")
   HTML(string=html_out).write_pdf(saved_pdf, stylesheets=[css])
   return saved_pdf
+
+def retrieve_latest_email():
+  try:
+    with open(EMAILS_FILE, 'r') as f:
+      return f.readlines()[-1].strip()
+  except FileNotFoundError:
+    return DEFAULT_EMAIL

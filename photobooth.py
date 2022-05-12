@@ -38,11 +38,11 @@ from util import (
     move_files,
     send_email_with_attachment,
     take_picture,
-    validate_email
+    validate_email,
+    retrieve_latest_email
 )
 
 
-DEFAULT_EMAIL = "cerigo3@gmail.com"
 WINDOW_X_OFFSET = 10
 WINDOW_Y_OFFSET = 10
 WINDOW_WIDTH = 1010
@@ -70,7 +70,8 @@ class EmailWindow(QWidget):
     self.textbox.setFont(font)
     self.textbox.move(110, 20)
     self.textbox.resize(690, 60)
-    self.textbox.setText(DEFAULT_EMAIL)
+    
+    self.textbox.setText(retrieve_latest_email())
 
     self.clear_email_button = QPushButton('', self)
     self.clear_email_button.resize(LETTER_BUTTON_WIDTH, LETTER_BUTTON_HEIGHT)
