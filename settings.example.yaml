@@ -7,6 +7,7 @@ settings:
   EVENT_NAME: 'Event name'
   EVENT_PLACE: 'Event place'
   EVENT_WEBSITE: 'Event website'
+  PDF_SALUTATION: 'Dear'
   PDF_MESSAGE: 'Message to be included in the generated pdf'
   PDF_SIGNATURE: 'With love! X and Y'
   PDF_TOP_IMG: 'top.png'

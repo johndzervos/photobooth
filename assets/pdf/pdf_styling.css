@@ -1,3 +1,8 @@
+@page {
+  size: A4;
+  margin: 0;
+}
+
 p {
   text-align: center;
   margin: 2rem;
@@ -29,20 +34,20 @@ p {
 
 .event-place {
   float: right;
-  margin-right: 3rem;
-  margin-top: 9rem;
+  margin-right: 4rem;
+  margin-top: 13rem;
 }
 
 .event-date {
   float: left;
-  margin-left: 3rem;
-  margin-top: 9rem;
+  margin-left: 4rem;
+  margin-top: 13rem;
 }
 
 .event-link {
   position: absolute;
   bottom: 6rem;
-  left: 14rem;
+  left: 20rem;
 }
 
 .signature {

@@ -228,6 +228,7 @@ def generate_pdf(email: str):
       'date': settings['EVENT_DATE'],
       'place': settings['EVENT_PLACE'],
       'url': settings['EVENT_WEBSITE'],
+      'salutation': settings['PDF_SALUTATION'],
       'receiver_name': email.split('@')[0],
       'body': settings['PDF_MESSAGE'],
       'signature': settings['PDF_SIGNATURE'],
